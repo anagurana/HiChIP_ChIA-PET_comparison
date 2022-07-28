@@ -1,0 +1,47 @@
+#!/bin/bash
+
+technology="chiapet"
+cell_line="GM19239_merged_replicates"
+path='/Users/aleksander.ostruk/Documents/asia_master'
+
+#petN=4
+#cat $path/$technology/$cell_line/$cell_line.e500.clusters.cis.BE3 | wc -l
+#cat $path/$technology/$cell_line/$cell_line.e500.clusters.cis.BE3.peak_annot.E2 |
+
+echo $technology
+echo $cell_line
+cat $path/$technology/$cell_line/$cell_line.e500.clusters.cis.BE3 | wc -l
+cat $path/$technology/$cell_line/$cell_line.e500.clusters.cis.BE3.peak_annot.E2 | wc -l
+for petN in {3..100}
+do
+#  echo $petN
+  cat $path/$technology/$cell_line/$cell_line.e500.clusters.cis.BE3.peak_annot.E2 | sort -k 7 |
+  awk '$7 == '"$petN" | wc -l
+done
+echo $petN
+cat $path/$technology/$cell_line/$cell_line.e500.clusters.cis.BE3.peak_annot.E2 | awk '$7 > 100' | wc -l
+#
+#  awk '$1 == '"$chr" |
+#  awk '$4 == '"$chr" |
+#  #awk '($8 = ($2 + $3) /2)' |
+#  #awk '($9 = ($5 + $6) /2)' |
+#  #awk '($10 = int($9 - $8))' |
+#  #awk '{print $10, $7}' |
+#  awk '$7 == '"$petN" | wc -l
+
+#for petN in {3..10}
+#do
+#  echo $petN
+#  if [ 10 == $petN ]
+#  then
+#     cat $path/$technology/$cell_line/$cell_line.e500.clusters.cis.BE3 |
+#     awk '$7 >= '"$petN" | wc -l
+#  else
+#  cat $path/$technology/$cell_line/$cell_line.e500.clusters.cis.BE3 |
+#  awk '$7 == '"$petN" | wc -l
+#  fi
+#done
+
+
+# create a file
+#sort -g > $path/$technology/$cell_line/length_analysis/len_freq_"$cell_line"_"$(echo $chr | sed 's/"//g')"_pet$petN.csv

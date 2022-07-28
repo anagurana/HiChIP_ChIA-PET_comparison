@@ -1,0 +1,21 @@
+# Directories that contain input data
+hichip/
+chiapet/
+chipseq/
+CTCF_hg38.txt
+
+# Reference scripts
+Michal_scripts/
+
+# Others
+.Rsubread_UserProvidedAnnotation*
+.Rhistory
+#.DS_Store*
+.idea*
+__pycache__
+#plots/.DS_Store
+#plots/mean_values/.DS_Store
+#plots/venn_diagrams/.DS_Store
+.DS_Store
+comparison.RData
+.RData

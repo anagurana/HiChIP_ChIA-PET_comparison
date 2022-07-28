@@ -1,0 +1,20 @@
+BiocManager::install("ChIPseeker")
+library(ChIPseeker)
+library(GenomicRanges)
+
+CTCF_1 <- read.table(file = '/home/agurova/ms/chiapipe_mod/peaks/gm19238_HiChIP.for.BROWSER.spp.z6.broadPeak')
+CTCF_2 <- read.table(file = '/home/agurova/ms/chiapipe_mod/peaks/gm19239_HiChIP.for.BROWSER.spp.z6.broadPeak')
+
+CTCF_1.grange <- GRanges(seqnames = CTCF_1$V1, IRanges(start = CTCF_1$V2, end = CTCF_1$V3), pval=10**-CTCF_1$V8, qval = 10^-CTCF_1$V9)
+CTCF_2.grange <- GRanges(seqnames = CTCF_2$V1, IRanges(start = CTCF_2$V2, end = CTCF_2$V3), pval=10**-CTCF_2$V8, qval = 10^-CTCF_2$V9)
+
+CTCF_1.reduced=reduce(sort(CTCF_1.grange))
+CTCF_2.reduced=reduce(sort(CTCF_2.grange))
+
+common_ctcf <- findOverlaps(CTCF_1.reduced, CTCF_2.reduced)
+
+length(CTCF_1.reduced)
+length(CTCF_2.reduced)
+length(unique(subjectHits(common_ctcf)))
+
+VennDiagram::draw.pairwise.venn(area1 = length(CTCF_1.reduced), area2 = length(CTCF_2.reduced), cross.area = length(unique(subjectHits(common_ctcf))), scaled = F)
