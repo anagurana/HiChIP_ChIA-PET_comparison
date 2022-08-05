@@ -985,45 +985,45 @@ dev.off()
 experiment="HiChIP"
 
 # Create tables that will include all important information for the analysis
-common_hichip_manorm=list(
+common_hichip_manorm_2rep=list(
   create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[1:2]),              
   create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[c(1,3)]),               
   create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[2:3]))
 
-names(common_hichip_manorm)=c(
+names(common_hichip_manorm_2rep)=c(
   paste0(paste0(str_sub(trios[1],1,2),str_sub(trios[1],start=6)),"_",paste0(str_sub(trios[2],1,2),str_sub(trios[2],start=6))),
   paste0(paste0(str_sub(trios[1],1,2),str_sub(trios[1],start=6)),"_",paste0(str_sub(trios[3],1,2),str_sub(trios[3],start=6))),
   paste0(paste0(str_sub(trios[2],1,2),str_sub(trios[2],start=6)),"_",paste0(str_sub(trios[3],1,2),str_sub(trios[3],start=6))))
 
 # Create additional tables with lower and higher values of mean values (select the squares)
 mean_range=c(10,10)
-common_hichip_manorm=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm, mean_range, trios[1:2])
-common_hichip_manorm=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm, mean_range, trios[c(1,3)])
-common_hichip_manorm=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm, mean_range, trios[2:3])
+common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_range, trios[1:2])
+common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_range, trios[c(1,3)])
+common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_range, trios[2:3])
 
 # Create false pos tables
 par="isPadj"
 
-pos_false_tables_hichip=list(
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[1]],trios[1:2], experiment, "all_mrgBins", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[4]],trios[1:2], experiment, "mean>=10_mrgBins", par),      
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[5]],trios[1:2], experiment, "mean<10_mrgBins", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[2]],trios[c(1,3)], experiment, "all_mrgBins", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[6]],trios[c(1,3)], experiment, "mean>=10_mrgBins", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[7]],trios[c(1,3)], experiment, "mean<10_mrgBins", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[3]],trios[2:3], experiment, "all_mrgBins", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[8]],trios[2:3], experiment, "mean>=10_mrgBins", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm[[9]],trios[2:3], experiment, "mean<10_mrgBins", par))
+pos_false_tables_hichip_2rep=list(
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[1]],trios[1:2], experiment, "all_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[4]],trios[1:2], experiment, "mean>=10_mrgBins", par),      
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[5]],trios[1:2], experiment, "mean<10_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[2]],trios[c(1,3)], experiment, "all_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[6]],trios[c(1,3)], experiment, "mean>=10_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[7]],trios[c(1,3)], experiment, "mean<10_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[3]],trios[2:3], experiment, "all_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[8]],trios[2:3], experiment, "mean>=10_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[9]],trios[2:3], experiment, "mean<10_mrgBins", par))
 
-names(pos_false_tables_hichip)=names(common_hichip_manorm)[c(1,4,5,2,6,7,3,8,9)]
+names(pos_false_tables_hichip_2rep)=names(common_hichip_manorm_2rep)[c(1,4,5,2,6,7,3,8,9)]
 
 # Create confusion tables for every pairs of replicates and freater and lower ranges               
                
-confusion_tables_hichip=vector(mode="list", length=NROW(pos_false_tables_hichip))
-names(confusion_tables_hichip)=names(pos_false_tables_hichip)
-for (i in 1:NROW(confusion_tables_hichip)){
-  confusion_tables_hichip[i]=list(caret::confusionMatrix(factor(common_hichip_manorm[[names(confusion_tables_hichip)[i]]]$common_padj, levels=c(TRUE, FALSE)), 
-                       factor(common_hichip_manorm[[names(confusion_tables_hichip)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
+confusion_tables_hichip_2rep=vector(mode="list", length=NROW(pos_false_tables_hichip_2rep))
+names(confusion_tables_hichip_2rep)=names(pos_false_tables_hichip_2rep)
+for (i in 1:NROW(confusion_tables_hichip_2rep)){
+  confusion_tables_hichip_2rep[i]=list(caret::confusionMatrix(factor(common_hichip_manorm_2rep[[names(confusion_tables_hichip_2rep)[i]]]$common_padj, levels=c(TRUE, FALSE)), 
+                       factor(common_hichip_manorm[[names(confusion_tables_hichip_2rep)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
                        dnn=c("padj>0.001", "SPP_detected")))
 }
 
@@ -1031,133 +1031,37 @@ for (i in 1:NROW(confusion_tables_hichip)){
 # pos_false_tables_hichip$GM38_GM39_mean_gr10$GM38T_GM38F[pos_false_tables_hichip$GM38_GM39_mean_gr10$GM38T_GM38F$end-pos_false_tables_hichip$GM38_GM39_mean_gr10$GM38T_GM38F$start<=5000,]
 
 # 4 CASES
-confusion_data_hichip=list(
+confusion_data_hichip_2rep=list(
        # Both show common (TP)
-  list(TP=pos_false_tables_hichip[[1]][[1]][pos_false_tables_hichip[[1]][[1]]$common_pval==TRUE,],
+  list(TP=pos_false_tables_hichip_2rep[[1]][[1]][pos_false_tables_hichip_2rep[[1]][[1]]$common_pval==TRUE,],
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_hichip[[1]][[1]][pos_false_tables_hichip[[1]][[1]]$common_pval==FALSE,], 
+       FP=pos_false_tables_hichip_2rep[[1]][[1]][pos_false_tables_hichip_2rep[[1]][[1]]$common_pval==FALSE,], 
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_hichip[[1]][["false_peaks"]][pos_false_tables_hichip[[1]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_hichip_2rep[[1]][["false_peaks"]][pos_false_tables_hichip_2rep[[1]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_hichip[[1]][["false_peaks"]][pos_false_tables_hichip[[1]][["false_peaks"]]$common_pval==FALSE,]),
-  list(TP=pos_false_tables_hichip[[4]][[1]][pos_false_tables_hichip[[4]][[1]]$common_pval==TRUE,],
+       TN=pos_false_tables_hichip_2rep[[1]][["false_peaks"]][pos_false_tables_hichip_2rep[[1]][["false_peaks"]]$common_pval==FALSE,]),
+  list(TP=pos_false_tables_hichip_2rep[[4]][[1]][pos_false_tables_hichip_2rep[[4]][[1]]$common_pval==TRUE,],
        
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_hichip[[4]][[1]][pos_false_tables_hichip[[4]][[1]]$common_pval==FALSE,],
+       FP=pos_false_tables_hichip_2rep[[4]][[1]][pos_false_tables_hichip_2rep[[4]][[1]]$common_pval==FALSE,],
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_hichip[[4]][["false_peaks"]][pos_false_tables_hichip[[4]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_hichip_2rep[[4]][["false_peaks"]][pos_false_tables_hichip_2rep[[4]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_hichip[[4]][["false_peaks"]][pos_false_tables_hichip[[4]][["false_peaks"]]$common_pval==FALSE,]),
+       TN=pos_false_tables_hichip_2rep[[4]][["false_peaks"]][pos_false_tables_hichip_2rep[[4]][["false_peaks"]]$common_pval==FALSE,]),
   
-  list(TP=pos_false_tables_hichip[[7]][[1]][pos_false_tables_hichip[[7]][[1]]$common_pval==TRUE,],
+  list(TP=pos_false_tables_hichip_2rep[[7]][[1]][pos_false_tables_hichip_2rep[[7]][[1]]$common_pval==TRUE,],
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_hichip[[7]][[1]][pos_false_tables_hichip[[7]][[1]]$common_pval==FALSE,],
+       FP=pos_false_tables_hichip_2rep[[7]][[1]][pos_false_tables_hichip_2rep[[7]][[1]]$common_pval==FALSE,],
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_hichip[[7]][["false_peaks"]][pos_false_tables_hichip[[7]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_hichip_2rep[[7]][["false_peaks"]][pos_false_tables_hichip_2rep[[7]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_hichip[[7]][["false_peaks"]][pos_false_tables_hichip[[7]][["false_peaks"]]$common_pval==FALSE,]))
+       TN=pos_false_tables_hichip_2rep[[7]][["false_peaks"]][pos_false_tables_hichip_2rep[[7]][["false_peaks"]]$common_pval==FALSE,]))
 
-names(confusion_data_hichip)=names(common_hichip_manorm)[1:3]
-
-
+names(confusion_data_hichip_2rep)=names(common_hichip_manorm_2rep)[1:3]
 
 ```
 
-Select possible constant peaks
-```{r}
-manorm_find_const_peaks=function(pos_faalse_table, norm){
-  
-}
-# Between 38 and other cell_lines
-# 7830 vs 5220 --> 4394 common
-f1=intersect(row.names(pos_false_tables_hichip$GM38_GM39$false_peaks[pos_false_tables_hichip$GM38_GM39$false_peaks$common_padj==TRUE,]),
-          row.names(pos_false_tables_hichip$GM38_GM40$false_peaks[pos_false_tables_hichip$GM38_GM40$false_peaks$common_padj==TRUE,]))
-#1341
-t1=intersect(row.names(pos_false_tables_hichip$GM38_GM39$GM38T_GM39T[pos_false_tables_hichip$GM38_GM39$GM38T_GM39T$common_padj==FALSE,]),
-          row.names(pos_false_tables_hichip$GM38_GM40$GM38T_GM40T[pos_false_tables_hichip$GM38_GM40$GM38T_GM40T$common_padj==FALSE,]))
-
-
-# Between 39 and other cell_lines
-# 7830 vs 7569 --> 6474 common
-f2=intersect(row.names(pos_false_tables_hichip$GM38_GM39$false_peaks[pos_false_tables_hichip$GM38_GM39$false_peaks$common_padj==TRUE,]),
-          row.names(pos_false_tables_hichip$GM39_GM40$false_peaks[pos_false_tables_hichip$GM39_GM40$false_peaks$common_padj==TRUE,]))
-#1027
-t2=intersect(row.names(pos_false_tables_hichip$GM38_GM39$GM38T_GM39T[pos_false_tables_hichip$GM38_GM39$GM38T_GM39T$common_padj==FALSE,]),
-          row.names(pos_false_tables_hichip$GM39_GM40$GM39T_GM40T[pos_false_tables_hichip$GM39_GM40$GM39T_GM40T$common_padj==FALSE,]))
-
-# Between 40 and other cell_lines
-# 5220 vs 7569 --> 4412 common
-f3=intersect(row.names(pos_false_tables_hichip$GM38_GM40$false_peaks[pos_false_tables_hichip$GM38_GM40$false_peaks$common_padj==TRUE,]),
-          row.names(pos_false_tables_hichip$GM39_GM40$false_peaks[pos_false_tables_hichip$GM39_GM40$false_peaks$common_padj==TRUE,]))
-#2568
-t3=intersect(row.names(pos_false_tables_hichip$GM38_GM40$GM38T_GM40T[pos_false_tables_hichip$GM38_GM40$GM38T_GM40T$common_padj==FALSE,]),
-          row.names(pos_false_tables_hichip$GM39_GM40$GM39T_GM40T[pos_false_tables_hichip$GM39_GM40$GM39T_GM40T$common_padj==FALSE,]))
-
-# Dedublicate the peaks
-# 7472 peaks are constant
-id_constant_hichip_by_manorm_peaks=data.frame(peak=unique(c(f1, f2, f3)), isMAnorm=TRUE, isSPP=FALSE)
-
-
-constant_hichip_by_manorm_peaks=norm_hichip_2rep[id_constant_hichip_by_manorm_peaks,]
-constant_hichip_by_manorm_peaks$by_spp=FALSE
-constant_hichip_by_manorm_peaks$by_manorm=TRUE
-
-id_constant_hichip_by_spp_peaks=data.frame(peak=row.names(pos_false_tables_hichip$GM38_GM39$GM38T_GM39T), isMAnorm=TRUE,isSPP=TRUE)
-cos=rbind(id_constant_hichip_by_manorm_peaks,id_constant_hichip_by_spp_peaks )
-
-unique(cos$peak)
-ifelse(duplicated(cos), cos$isMAnorm=TRUE, cos$isSPP=TRUE)
-
-unique(id_constant_hichip_by_manorm_peaks$peak, id_constant_hichip_by_spp_peaks$peak)
-
-constant_hichip_by_spp_peaks=norm_hichip_2rep[id_constant_hichip_by_spp_peaks,]
-constant_hichip_by_spp_peaks$by_spp=TRUE
-constant_hichip_by_spp_peaks$by_manorm=FALSE
-
-rbind(constant_hichip_by_manorm_peaks, constant_hichip_by_spp_peaks) 
-
-rbind(constant_hichip_by_manorm_peaks, constant_hichip_by_spp_peaks)
-
-constant_hichip_with_manorm=(constant_hichip_by_manorm_peaks, constant_hichip_by_spp_peaks))
-  
-unlist(true_common_peaks_ChIAPET, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE))
-  
-
-
-all_id_constant_hichip_whith_manorm_peaks=unique(c(id_constant_hichip_by_manorm_peaks, id_constant_hichip_by_spp_peaks))
-constant_hichip_with_manorm=norm_hichip_2rep[all_id_constant_hichip_whith_manorm_peaks,]
-
-cos.df=data.frame(constant_hichip_with_manorm %>% select(chrom, start, end),
-                  name=row.names(constant_hichip_with_manorm),
-                  padj_38_39=res_hichip_rep2$GM19238_GM19239[all_id_constant_hichip_whith_manorm_peaks,]$padj,
-                  padj_38_40=res_hichip_rep2$GM19238_GM19240[all_id_constant_hichip_whith_manorm_peaks,]$padj,
-                  padj_39_40=res_hichip_rep2$GM19239_GM19240[all_id_constant_hichip_whith_manorm_peaks,]$padj)
-constant_hichip_with_manorm.gr=GRanges(cos.df)
-
-subsetByOverlaps(constant_hichip_with_manorm.gr, true_common_peaks_HiChIP)
-
-cos.gr=GRanges(norm_hichip_2rep[unique(cos$peak),])
-subsetByOverlaps(IRanges::reduce(cos.gr+1000), IRanges::reduce(true_common_peaks_reduced_ChIPSeq$constant_peaks+1000))
-
-
-
-
-
-# 4054
-id_unconstant_hichip_by_manorm_peaks=unique(c(t1, t2, t3))
-norm_hichip_2rep[id_unconstant_hichip_by_manorm_peaks,]
-
-
-
-# How many and which peaks from them got the padj<0.001 whith aovBioCond
-# 1036 from 7472
-norm_hichip_2rep[row.names(res_hichip_rep2$all_trios[id_constant_hichip_by_manorm_peaks,][res_hichip_rep2$all_trios[id_constant_hichip_by_manorm_peaks,]$padj<0.001,]),][1:10,]
-
-# Add others true peaks
-
-
-```
-Select only peaks that are less than 5000 kb
+# [HiChIP 2 rep < 5kb] Select only peaks that are less than 5000 kb
 ```{r}
 
 common_hichip_manorm$GM38_GM39_mean_gr10[common_hichip_manorm$GM38_GM39_mean_gr10$end-common_hichip_manorm$GM38_GM39_mean_gr10$start>5000 & common_hichip_manorm$GM38_GM39_mean_gr10$padj>0.001 ,]
@@ -1276,7 +1180,7 @@ conds_hichip_meanCurve=list(fitMeanVarCurve(conds_hichip[c(1, 2, 3, 7)], method 
                          occupy.only = TRUE, init.coef = c(0.1, 10)),
                             fitMeanVarCurve(conds_hichip[c(2, 3, 6)], method = "parametric",
                          occupy.only = TRUE, init.coef = c(0.1, 10)))
-names(han_conds_chiapet_meanCurve)=c("all_trios", 
+names(conds_hichip_meanCurve)=c("all_trios", 
                                      paste0(trios[1],"_",trios[2]),
                                      paste0(trios[1],"_",trios[3]),
                                      paste0(trios[2],"_",trios[3]))
@@ -1297,7 +1201,7 @@ names(res_hichip)=names(conds_hichip_meanCurve)
 
 # Visualize the results
 
-png(paste0('plots/',experiment,'_MAnorm_merRep_trios_diff_test.png'), res = 300, width = 2200, height = 2200)
+png(paste0('plots/',prop_name(experiment),'_MAnorm_merRep_trios_diff_test.png'), res = 300, width = 2200, height = 2200)
 par(mar=c(2.3,2.3,2.3,2.3))
 layout(matrix(c(1,2,3,4,1,5,3,4,1,6,3,4),ncol=3),heights=c(1,3,1,3,1,3))
 
@@ -1320,7 +1224,7 @@ for (name in names(res_hichip)){
   correaltion_hichip_mer_vs_2rep[[name]]=cor(res_hichip_rep2[[name]]$pval, res_hichip[[name]]$pval, method = "spearman")
 }
 
-png(paste0('plots/',experiment,'_correlation_pval_single_merged.png'), res = 300, width = 2200, height = 1100)
+png(paste0('plots/',prop_name(experiment),'_correlation_pval_single_merged.png'), res = 300, width = 2200, height = 1100)
 layout(matrix(c(1,3,7,2,4,8,2,5,9,2,6,10),ncol=4),heights=c(1,3,0.5,1,3,0.5,1,3,0.5,1,3,0.5), widths=c(2, 1.5, 1.5, 1.5))
 
 par(mar=c(0,0,0,0))
@@ -1355,77 +1259,156 @@ experiment="HiChIP"
 trios=c("GM19238", "GM19239", "GM19240")
 
 # Create tables that will include all important information for the analysis
-common_hichip_manorm_merged=list(
+common_hichip_manorm=list(
   create_table_common_peaks_with_info(norm_hichip, res_hichip, conds_hichip, trios[1:2]),
   create_table_common_peaks_with_info(norm_hichip, res_hichip, conds_hichip, trios[c(1,3)]),
   create_table_common_peaks_with_info(norm_hichip, res_hichip, conds_hichip, trios[2:3]))
 
-names(han_common_chiapet_manorm_merged)=create_short_name_for_col(trios)
+names(common_hichip_manorm)=create_short_name_for_col(trios)
 
 # Create additional tables with lower and higher values of mean values (select the squares)
 mean_range=c(10,10)
 
-common_hichip_manorm_merged=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_merged, mean_range, trios[1:2])
-common_hichip_manorm_merged=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_merged, mean_range, trios[c(1,3)])
-common_hichip_manorm_merged=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_merged, mean_range, trios[2:3])
+common_hichip_manorm=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm, mean_range, trios[1:2])
+common_hichip_manorm=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm, mean_range, trios[c(1,3)])
+common_hichip_manorm=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm, mean_range, trios[2:3])
 
 # Create false pos tables
 par="isPval"
 
-pos_false_tables_hichip_merged=list(
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[1]],trios[1:2], experiment, "all_mrgRep", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[4]],trios[1:2], experiment, "mean>=10_mrgRep", par),      
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[5]],trios[1:2], experiment, "mean<10_mrgRep", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[2]],trios[c(1,3)], experiment, "all_mrgBins", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[6]],trios[c(1,3)], experiment, "mean>=10_mrgRep", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[7]],trios[c(1,3)], experiment, "mean<10_mrgRep", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[3]],trios[2:3], experiment, "all_mrgRep", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[8]],trios[2:3], experiment, "mean>=10_mrgRep", par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_merged[[9]],trios[2:3], experiment, "mean<10_mrgRep", par))
+pos_false_tables_hichip=list(
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[1]],trios[1:2], experiment, "all_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[4]],trios[1:2], experiment, "mean>=10_mrgRep", par),      
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[5]],trios[1:2], experiment, "mean<10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[2]],trios[c(1,3)], experiment, "all_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[6]],trios[c(1,3)], experiment, "mean>=10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[7]],trios[c(1,3)], experiment, "mean<10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[3]],trios[2:3], experiment, "all_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[8]],trios[2:3], experiment, "mean>=10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_hichip_manorm[[9]],trios[2:3], experiment, "mean<10_mrgRep", par))
 
-names(pos_false_tables_hichip_merged)=names(common_hichip_manorm_merged)[c(1,4,5,2,6,7,3,8,9)]
+names(pos_false_tables_hichip)=names(common_hichip_manorm)[c(1,4,5,2,6,7,3,8,9)]
 
 # Create confusion tables for every pairs of replicates and freater and lower ranges              
-confusion_tables_hichip_merged=vector(mode="list", length=NROW(pos_false_tables_hichip_merged))
-names(confusion_tables_hichip_merged)=names(pos_false_tables_hichip_merged)
-for (i in 1:NROW(confusion_tables_hichip_merged)){
-  confusion_tables_hichip_merged[i]=list(caret::confusionMatrix(factor(common_hichip_manorm_merged[[names(confusion_tables_hichip_merged)[i]]]$common_padj, levels=c(TRUE, FALSE)), 
-                       factor(common_hichip_manorm_merged[[names(confusion_tables_hichip_merged)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
+confusion_tables_hichip=vector(mode="list", length=NROW(pos_false_tables_hichip))
+names(confusion_tables_hichip)=names(pos_false_tables_hichip)
+for (i in 1:NROW(confusion_tables_hichip)){
+  confusion_tables_hichip[i]=list(caret::confusionMatrix(factor(common_hichip_manorm[[names(confusion_tables_hichip)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
+                       factor(common_hichip_manorm[[names(confusion_tables_hichip)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
                        dnn=c("pval>0.05", "SPP_detected")))
 }
 
 # 4 CASES
 
-confusion_data_hichip_merged=list(
+confusion_data_hichip=list(
        # Both show common (TP)
-  list(TP=pos_false_tables_hichip_merged[[1]][[1]][pos_false_tables_hichip_merged[[1]][[1]]$common_pval==TRUE,],
+  list(TP=pos_false_tables_hichip[[1]][[1]][pos_false_tables_hichip[[1]][[1]]$common_pval==TRUE,],
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_hichip_merged[[1]][[1]][pos_false_tables_hichip_merged[[1]][[1]]$common_pval==FALSE,], 
+       FP=pos_false_tables_hichip[[1]][[1]][pos_false_tables_hichip[[1]][[1]]$common_pval==FALSE,], 
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_hichip_merged[[1]][["false_peaks"]][pos_false_tables_hichip_merged[[1]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_hichip[[1]][["false_peaks"]][pos_false_tables_hichip[[1]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_hichip_merged[[1]][["false_peaks"]][pos_false_tables_hichip_merged[[1]][["false_peaks"]]$common_pval==FALSE,]),
-  list(TP=pos_false_tables_hichip_merged[[4]][[1]][pos_false_tables_hichip_merged[[4]][[1]]$common_pval==TRUE,],
+       TN=pos_false_tables_hichip[[1]][["false_peaks"]][pos_false_tables_hichip[[1]][["false_peaks"]]$common_pval==FALSE,]),
+  list(TP=pos_false_tables_hichip[[4]][[1]][pos_false_tables_hichip[[4]][[1]]$common_pval==TRUE,],
        
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_hichip_merged[[4]][[1]][pos_false_tables_hichip_merged[[4]][[1]]$common_pval==FALSE,],
+       FP=pos_false_tables_hichip[[4]][[1]][pos_false_tables_hichip[[4]][[1]]$common_pval==FALSE,],
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_hichip_merged[[4]][["false_peaks"]][pos_false_tables_hichip_merged[[4]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_hichip[[4]][["false_peaks"]][pos_false_tables_hichip[[4]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_hichip_merged[[4]][["false_peaks"]][pos_false_tables_hichip_merged[[4]][["false_peaks"]]$common_pval==FALSE,]),
+       TN=pos_false_tables_hichip[[4]][["false_peaks"]][pos_false_tables_hichip[[4]][["false_peaks"]]$common_pval==FALSE,]),
   
-  list(TP=pos_false_tables_hichip_merged[[7]][[1]][pos_false_tables_hichip_merged[[7]][[1]]$common_pval==TRUE,],
+  list(TP=pos_false_tables_hichip[[7]][[1]][pos_false_tables_hichip[[7]][[1]]$common_pval==TRUE,],
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_hichip_merged[[7]][[1]][pos_false_tables_hichip_merged[[7]][[1]]$common_pval==FALSE,],
+       FP=pos_false_tables_hichip[[7]][[1]][pos_false_tables_hichip[[7]][[1]]$common_pval==FALSE,],
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_hichip_merged[[7]][["false_peaks"]][pos_false_tables_hichip_merged[[7]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_hichip[[7]][["false_peaks"]][pos_false_tables_hichip[[7]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_hichip_merged[[7]][["false_peaks"]][pos_false_tables_hichip_merged[[7]][["false_peaks"]]$common_pval==FALSE,]))
+       TN=pos_false_tables_hichip[[7]][["false_peaks"]][pos_false_tables_hichip[[7]][["false_peaks"]]$common_pval==FALSE,]))
 
-names(confusion_data_hichip_merged)=names(common_hichip_manorm_merged)[1:3]
+names(confusion_data_hichip)=names(common_hichip_manorm)[1:3]
 
 ```
+#Select possible constant peaks
+```{r}
+manorm_find_const_peaks=function(pos_false_table, norm){
+  
+}
 
+possible_common_peaks_hichip=list(
+  poss_38_39=row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE & pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE),]),
+  poss_38_40=row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE & pos_false_table[[1]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE),]),
+  poss_39_40=row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE & pos_false_table[[1]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE),])
+)
+
+common_because_of_38=unique(
+  intersect(possible_common_peaks_hichip$poss_38_39, possible_common_peaks_hichip$poss_38_40),
+  intersect(possible_common_peaks_hichip$poss_38_39, row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[4]]$false_peaks[[paste0(trios[[4]],".occupancy")]]==TRUE & pos_false_table[[4]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE),]),),
+  intersect(possible_common_peaks_hichip$poss_38_40, )
+)
+
+
+# Between 38 and other cell_lines
+# 2571 vs 1773 --> 610 common
+
+pos_false_table=pos_false_tables_hichip
+fn_1=intersect(
+  row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE | pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE),]),
+  row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                                (pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE | pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE),]))
+
+
+
+# Between 39 and other cell_lines
+# 2571 vs 2618 --> 968 common
+fn_2=intersect(
+  row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE | pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE),]),
+  row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                (pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE | pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE),]))
+
+# Between 40 and other cell_lines
+# 1773 vs 7569 --> 751 common
+fn_3=intersect(
+  row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE | pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE),]),
+  row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                (pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE | pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE),]))
+
+# Dedublicate the peaks
+# 7472 peaks are constant
+id_constant_hichip_by_manorm_peaks=unique(c(fn_1, fn_2, fn_3))
+
+constant_hichip_by_manorm_peaks=norm_hichip_2rep[id_constant_hichip_by_manorm_peaks,]
+constant_hichip_by_manorm_peaks$by_spp=FALSE
+constant_hichip_by_manorm_peaks$by_manorm=TRUE
+
+constant_hichip_by_manorm_peaks.gr=GRanges(constant_hichip_by_manorm_peaks)
+  
+unlist(true_common_peaks_ChIAPET, recursive = TRUE, use.names = TRUE) unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE)
+
+subsetByOverlaps(constant_hichip_by_manorm_peaks.gr, true_common_peaks_ChIPSeq$constant_peaks)
+
+IRanges::reduce(constant_hichip_by_manorm_peaks.gr, true_common_peaks_HiChIP$constant_peaks)
+
+subsetByOverlaps(constant_hichip_with_manorm.gr, true_common_peaks_HiChIP)
+
+cos.gr=GRanges(norm_hichip_2rep[unique(cos$peak),])
+subsetByOverlaps(IRanges::reduce(cos.gr+1000), IRanges::reduce(true_common_peaks_reduced_ChIPSeq$constant_peaks+1000))
+
+
+
+
+
+# 4054
+id_unconstant_hichip_by_manorm_peaks=unique(c(t1, t2, t3))
+norm_hichip_2rep[id_unconstant_hichip_by_manorm_peaks,]
+
+
+
+# How many and which peaks from them got the padj<0.001 whith aovBioCond
+# 1036 from 7472
+norm_hichip_2rep[row.names(res_hichip_rep2$all_trios[id_constant_hichip_by_manorm_peaks,][res_hichip_rep2$all_trios[id_constant_hichip_by_manorm_peaks,]$padj<0.001,]),][1:10,]
+
+# Add others true peaks
+
+
+```
 # [ChIA-PET 2 rep] MANorm data processing
 ```{r}
 experiment="chiapet"
@@ -1510,7 +1493,7 @@ res_chiapet_rep2=list(all_trios=aovBioCond(conds_chiapet_2rep),
                      diffTest(conds_chiapet_2rep[[1]], conds_chiapet_2rep[[2]]),
                      diffTest(conds_chiapet_2rep[[1]], conds_chiapet_2rep[[3]]),
                      diffTest(conds_chiapet_2rep[[2]], conds_chiapet_2rep[[3]]))
-names(han_res_chiapet_rep2)=c("all_trios", 
+names(res_chiapet_rep2)=c("all_trios", 
                               paste0(trios[1],"_",trios[2]),
                               paste0(trios[1],"_",trios[3]), 
                               paste0(trios[2],"_",trios[3]))
@@ -1541,73 +1524,73 @@ dev.off()
 experiment="ChIA-PET"
 
 # Create tables that will include all important information for the analysis
-common_chiapet_manorm=list(
+common_chiapet_manorm_2rep=list(
   create_table_common_peaks_with_info(norm_chiapet_2rep, res_chiapet_rep2, conds_chiapet_2rep, trios[1:2]),
   create_table_common_peaks_with_info(norm_chiapet_2rep, res_chiapet_rep2, conds_chiapet_2rep, trios[c(1:3)]),
   create_table_common_peaks_with_info(norm_chiapet_2rep, res_chiapet_rep2, conds_chiapet_2rep, trios[2:3]))
-names(common_chiapet_manorm)=create_short_name_for_col(trios)
+names(common_chiapet_manorm_2rep)=create_short_name_for_col(trios)
 
 # Create additional tables with lower and higher values of mean values (select the squares)
 mean_range=c(10,10)
 
-common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[1:2])
-common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[c(1,3)])
-common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[2:3])
+common_chiapet_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm_2rep, mean_range, trios[1:2])
+common_chiapet_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm_2rep, mean_range, trios[c(1,3)])
+common_chiapet_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm_2rep, mean_range, trios[2:3])
 
 # Create false pos tables                                    
 par="isPval"
 prefix="_mrgBins_"
-pos_false_tables_chiapet=list(
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[1]],trios[1:2], experiment, paste0("all",prefix),par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[4]],trios[1:2], experiment, paste0("mean>=10",prefix), par),      
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[5]],trios[1:2], experiment, paste0("mean<10",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[2]],trios[c(1,3)], experiment, paste0("all",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[6]],trios[c(1,3)], experiment, paste0("mean>=10",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[7]],trios[c(1,3)], experiment, paste0("mean<10",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[3]],trios[2:3], experiment, paste0("all",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[8]],trios[2:3], experiment, paste0("mean>=10",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm[[9]],trios[2:3], experiment, paste0("mean<10",prefix), par))
-names(pos_false_tables_chiapet)=names(common_chiapet_manorm)[c(1,4,5,2,6,7,3,8,9)]
+pos_false_tables_chiapet_2rep=list(
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[1]],trios[1:2], experiment, paste0("all",prefix),par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[4]],trios[1:2], experiment, paste0("mean>=10",prefix), par),      
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[5]],trios[1:2], experiment, paste0("mean<10",prefix), par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[2]],trios[c(1,3)], experiment, paste0("all",prefix), par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[6]],trios[c(1,3)], experiment, paste0("mean>=10",prefix), par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[7]],trios[c(1,3)], experiment, paste0("mean<10",prefix), par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[3]],trios[2:3], experiment, paste0("all",prefix), par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[8]],trios[2:3], experiment, paste0("mean>=10",prefix), par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[9]],trios[2:3], experiment, paste0("mean<10",prefix), par))
+names(pos_false_tables_chiapet_2rep)=names(common_chiapet_manorm_2rep)[c(1,4,5,2,6,7,3,8,9)]
 rm(prefix)
 
 # Create confusion tables         
-confusion_tables_chiapet=vector(mode="list", length=NROW(pos_false_tables_chiapet))
-names(confusion_tables_chiapet)=names(pos_false_tables_chiapet)
+confusion_tables_chiapet=vector(mode="list", length=NROW(pos_false_tables_chiapet_2rep))
+names(confusion_tables_chiapet)=names(pos_false_tables_chiapet_2rep)
 for (i in 1:NROW(confusion_tables_chiapet)){
-  confusion_tables_chiapet[i]=list(caret::confusionMatrix(factor(common_chiapet_manorm[[names(confusion_tables_chiapet)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
-                       factor(common_chiapet_manorm[[names(confusion_tables_chiapet)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
+  confusion_tables_chiapet[i]=list(caret::confusionMatrix(factor(common_chiapet_manorm_2rep[[names(confusion_tables_chiapet)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
+                       factor(common_chiapet_manorm_2rep[[names(confusion_tables_chiapet)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
                        dnn=c("pval>0.05", "SPP_detected")))
 }
 
 
 # 4 CASES
 # Both show common (TP)
-confusion_data_chiapet=list(
-  list(TP=pos_false_tables_chiapet[[1]][[1]][pos_false_tables_chiapet[[1]][[1]]$common_pval==TRUE,],
+confusion_data_chiapet_2rep=list(
+  list(TP=pos_false_tables_chiapet_2rep[[1]][[1]][pos_false_tables_chiapet_2rep[[1]][[1]]$common_pval==TRUE,],
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_chiapet[[1]][[1]][pos_false_tables_chiapet[[1]][[1]]$common_pval==FALSE,], 
+       FP=pos_false_tables_chiapet_2rep[[1]][[1]][pos_false_tables_chiapet_2rep[[1]][[1]]$common_pval==FALSE,], 
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_chiapet[[1]][["false_peaks"]][pos_false_tables_chiapet[[1]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_chiapet_2rep[[1]][["false_peaks"]][pos_false_tables_chiapet_2rep[[1]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_chiapet[[1]][["false_peaks"]][pos_false_tables_chiapet[[1]][["false_peaks"]]$common_pval==FALSE,]),
-  list(TP=pos_false_tables_chiapet[[4]][[1]][pos_false_tables_chiapet[[4]][[1]]$common_pval==TRUE,],
+       TN=pos_false_tables_chiapet_2rep[[1]][["false_peaks"]][pos_false_tables_chiapet_2rep[[1]][["false_peaks"]]$common_pval==FALSE,]),
+  list(TP=pos_false_tables_chiapet_2rep[[4]][[1]][pos_false_tables_chiapet_2rep[[4]][[1]]$common_pval==TRUE,],
        
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_chiapet[[4]][[1]][pos_false_tables_chiapet[[4]][[1]]$common_pval==FALSE,],
+       FP=pos_false_tables_chiapet_2rep[[4]][[1]][pos_false_tables_chiapet_2rep[[4]][[1]]$common_pval==FALSE,],
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_chiapet[[4]][["false_peaks"]][pos_false_tables_chiapet[[4]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_chiapet_2rep[[4]][["false_peaks"]][pos_false_tables_chiapet_2rep[[4]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_chiapet[[4]][["false_peaks"]][pos_false_tables_chiapet[[4]][["false_peaks"]]$common_pval==FALSE,]),
+       TN=pos_false_tables_chiapet_2rep[[4]][["false_peaks"]][pos_false_tables_chiapet_2rep[[4]][["false_peaks"]]$common_pval==FALSE,]),
   
-  list(TP=pos_false_tables_chiapet[[7]][[1]][pos_false_tables_chiapet[[7]][[1]]$common_pval==TRUE,],
+  list(TP=pos_false_tables_chiapet_2rep[[7]][[1]][pos_false_tables_chiapet_2rep[[7]][[1]]$common_pval==TRUE,],
        # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-       FP=pos_false_tables_chiapet[[7]][[1]][pos_false_tables_chiapet[[7]][[1]]$common_pval==FALSE,],
+       FP=pos_false_tables_chiapet_2rep[[7]][[1]][pos_false_tables_chiapet_2rep[[7]][[1]]$common_pval==FALSE,],
        # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-       FN=pos_false_tables_chiapet[[7]][["false_peaks"]][pos_false_tables_chiapet[[7]][["false_peaks"]]$common_pval==TRUE,],
+       FN=pos_false_tables_chiapet_2rep[[7]][["false_peaks"]][pos_false_tables_chiapet_2rep[[7]][["false_peaks"]]$common_pval==TRUE,],
        # SPP pokazuje nie i padj się zgadza  (TN)
-       TN=pos_false_tables_chiapet[[7]][["false_peaks"]][pos_false_tables_chiapet[[7]][["false_peaks"]]$common_pval==FALSE,]))
+       TN=pos_false_tables_chiapet_2rep[[7]][["false_peaks"]][pos_false_tables_chiapet_2rep[[7]][["false_peaks"]]$common_pval==FALSE,]))
 
-names(confusion_data_chiapet)=names(common_chiapet_manorm)[1:3]
+names(confusion_data_chiapet_2rep)=names(common_chiapet_manorm_2rep)[1:3]
 
 ```
 
@@ -1753,79 +1736,76 @@ text(0.66, 0.66,paste0("cor = ",round(correaltion_chiapet_mer_vs_2rep[[4]],2)),c
 experiment="ChIA-PET"
 
 # Create tables that will include all important information for the analysis
-cell_lines=list(trios[1:2],
-                trios[c(1,3)],
-                trios[2:3])
-common_chiapet_manorm_merged=list(
-  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet, cell_lines[[1]]),
-  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet, cell_lines[[2]]),
-  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet, cell_lines[[3]]))
-names(common_chiapet_manorm_merged)=c(
-  paste0(paste0(str_sub(trios[1],1,2),str_sub(trios[1],start=6)),"_",paste0(str_sub(trios[2],1,2),str_sub(trios[2],start=6))),
-  paste0(paste0(str_sub(trios[1],1,2),str_sub(trios[1],start=6)),"_",paste0(str_sub(trios[3],1,2),str_sub(trios[3],start=6))),
-  paste0(paste0(str_sub(trios[2],1,2),str_sub(trios[2],start=6)),"_",paste0(str_sub(trios[3],1,2),str_sub(trios[3],start=6))))
+common_chiapet_manorm=list(
+  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet, trios[1:2]),
+  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet,trios[c(1,3)]),
+  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet, trios[2:3]))
+names(common_chiapet_manorm)=create_short_name_for_col(trios)
 
 # Create additional tables with lower and higher values of mean values (select the squares)
 mean_range=c(10,10)
-common_chiapet_manorm_merged$GM38_GM39_mean_gr10=common_chiapet_manorm_merged$GM38_GM39[common_chiapet_manorm_merged$GM38_GM39$GM19238.mean>=mean_range[1]&                                                        common_chiapet_manorm_merged$GM38_GM39$GM19239.mean>=mean_range[2],]
-common_chiapet_manorm_merged$GM38_GM39_mean_lw10=common_chiapet_manorm_merged$GM38_GM39[common_chiapet_manorm_merged$GM38_GM39$GM19238.mean<mean_range[1]&                                                common_chiapet_manorm_merged$GM38_GM39$GM19239.mean<mean_range[2],]
 
-common_chiapet_manorm_merged$GM38_GM40_mean_gr10=common_chiapet_manorm_merged$GM38_GM40[common_chiapet_manorm_merged$GM38_GM40$GM19238.mean>=mean_range[1]&                                                                        common_chiapet_manorm_merged$GM38_GM40$GM19240.mean>=mean_range[2],]
-common_chiapet_manorm_merged$GM38_GM40_mean_lw10=common_chiapet_manorm_merged$GM38_GM40[common_chiapet_manorm_merged$GM38_GM40$GM19238.mean<mean_range[1]&                                                 common_chiapet_manorm_merged$GM38_GM40$GM19240.mean<mean_range[2],]
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[1:2])
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[c(1,3)])
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[2:3])
 
-common_chiapet_manorm_merged$GM39_GM40_mean_gr10=common_chiapet_manorm_merged$GM39_GM40[common_chiapet_manorm_merged$GM39_GM40$GM19239.mean>=mean_range[1]&                                                                        common_chiapet_manorm_merged$GM39_GM40$GM19240.mean>=mean_range[2],]
-common_chiapet_manorm_merged$GM39_GM40_mean_lw10=common_chiapet_manorm_merged$GM39_GM40[common_chiapet_manorm_merged$GM39_GM40$GM19239.mean<mean_range[1]&                                                                        common_chiapet_manorm_merged$GM39_GM40$GM19240.mean<mean_range[2],]
+# Create false pos tables
+par="isPval"
 
-pos_false_tables_chiapet_merged=list(
-  GM38_GM39=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM38_GM39,trios[1:2], experiment, "all_merRep", "isPval"),
-  GM38_GM39_mean_gr10=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM38_GM39_mean_gr10,trios[1:2], experiment, prefix="mean>=10_merRep", padj_or_pval = "isPval"),
-  GM38_GM39_mean_lw10=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM38_GM39_mean_lw10,trios[1:2], experiment, "mean<10_merRep", "isPval"),
-  GM38_GM40=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM38_GM40,trios[1:3], experiment, "all_merRep", "isPval"),
-  GM38_GM40_mean_gr10=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM38_GM40_mean_gr10,trios[1:3], experiment, "mean>=10_merRep", "isPval"),
-  GM38_GM40_mean_lw10=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM38_GM40_mean_lw10,trios[1:3], experiment, "mean<10_merRep", "isPval"),
-  GM39_GM40=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM39_GM40,trios[2:3], experiment, "all_merRep", "isPval"),
-  GM39_GM40_mean_gr10=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM39_GM40_mean_gr10,trios[2:3], experiment, "mean>=10_merRep", "isPval"),
-  GM39_GM40_mean_lw10=create_fp_tables_and_save_graphs(common_chiapet_manorm_merged$GM39_GM40_mean_lw10,trios[2:3], experiment, "mean<10_merRep", "isPval"))
-               
-               
-confusion_tables_chiapet_merged=vector(mode="list", length=NROW(pos_false_tables_chiapet_merged))
-names(confusion_tables_chiapet_merged)=names(pos_false_tables_chiapet_merged)
-for (i in 1:NROW(confusion_tables_chiapet_merged)){
-  confusion_tables_chiapet_merged[i]=list(caret::confusionMatrix(factor(common_chiapet_manorm_merged[[names(confusion_tables_chiapet_merged)[i]]]$common_padj, levels=c(TRUE, FALSE)), 
-                       factor(common_chiapet_manorm_merged[[names(confusion_tables_chiapet_merged)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
-                       dnn=c("padj>0.001", "SPP_detected")))
+pos_false_tables_chiapet=list(
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[1]],trios[1:2], experiment, "all_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[4]],trios[1:2], experiment, "mean>=10_mrgRep", par),      
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[5]],trios[1:2], experiment, "mean<10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[2]],trios[c(1,3)], experiment, "all_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[6]],trios[c(1,3)], experiment, "mean>=10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[7]],trios[c(1,3)], experiment, "mean<10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[3]],trios[2:3], experiment, "all_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[8]],trios[2:3], experiment, "mean>=10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[9]],trios[2:3], experiment, "mean<10_mrgRep", par))
+
+names(pos_false_tables_chiapet)=names(common_chiapet_manorm)[c(1,4,5,2,6,7,3,8,9)]
+
+# Create confusion tables for every pairs of replicates and freater and lower ranges                  
+confusion_tables_chiapet=vector(mode="list", length=NROW(pos_false_tables_chiapet))
+names(confusion_tables_chiapet)=names(pos_false_tables_chiapet)
+for (i in 1:NROW(confusion_tables_chiapet)){
+  confusion_tables_chiapet[i]=list(caret::confusionMatrix(factor(common_chiapet_manorm[[names(confusion_tables_chiapet)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
+                       factor(common_chiapet_manorm[[names(confusion_tables_chiapet)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
+                       dnn=c("pval>0.05", "SPP_detected")))
 }
+
 
 
 # pos_false_tables_hichip_merged$GM38_GM39_mean_gr10$GM38T_GM38F[pos_false_tables_hichip_merged$GM38_GM39_mean_gr10$GM38T_GM38F$end-pos_false_tables_hichip$GM38_GM39_mean_gr10$GM38T_GM38F$start<=5000,]
 
-# 4 cases
-confusion_data_chiapet_merged=list(
-  GM19238_GM19239=list(
-    # Oba pokazują tak (TP)
-    TP=pos_false_tables_chiapet_merged$GM38_GM39$GM38T_GM39T[pos_false_tables_chiapet_merged$GM38_GM39$GM38T_GM39T$common_padj==TRUE,],
-    # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)                                 
-    FP=pos_false_tables_chiapet_merged$GM38_GM39$GM38T_GM39T[pos_false_tables_chiapet_merged$GM38_GM39$GM38T_GM39T$common_padj==FALSE,],
-    # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-    FN=pos_false_tables_chiapet_merged$GM38_GM39$false_peaks[pos_false_tables_chiapet_merged$GM38_GM39$false_peaks$common_padj==TRUE,],
-    # SPP pokazuje nie i padj się zgadza  (TN)
-    TN=pos_false_tables_chiapet_merged$GM38_GM39$false_peaks[pos_false_tables_chiapet_merged$GM38_GM39$false_peaks$common_padj==FALSE,]),
-  GM19238_GM19240=list(
-    TP=pos_false_tables_chiapet_merged$GM38_GM40$GM38T_GM40T[pos_false_tables_chiapet_merged$GM38_GM40$GM38T_GM40T$common_padj==TRUE,],
-    # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-    FP=pos_false_tables_chiapet_merged$GM38_GM40$GM38T_GM40T[pos_false_tables_chiapet_merged$GM38_GM40$GM38T_GM40T$common_padj==FALSE,],
-    # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-    FN=pos_false_tables_chiapet_merged$GM38_GM40$false_peaks[pos_false_tables_chiapet_merged$GM38_GM40$false_peaks$common_padj==TRUE,],
-    # SPP pokazuje nie i padj się zgadza  (TN)
-    TN=pos_false_tables_chiapet_merged$GM38_GM40$false_peaks[pos_false_tables_chiapet_merged$GM38_GM40$false_peaks$common_padj==FALSE,]),
-  GM19239_GM19240=list(
-    TP=pos_false_tables_chiapet_merged$GM39_GM40$GM39T_GM40T[pos_false_tables_chiapet_merged$GM39_GM40$GM39T_GM40T$common_padj==TRUE,],
-    # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
-    FP=pos_false_tables_chiapet_merged$GM39_GM40$GM39T_GM40T[pos_false_tables_chiapet_merged$GM39_GM40$GM39T_GM40T$common_padj==FALSE,],
-    # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
-    FN=pos_false_tables_chiapet_merged$GM39_GM40$false_peaks[pos_false_tables_chiapet_merged$GM39_GM40$false_peaks$common_padj==TRUE,],
-    # SPP pokazuje nie i padj się zgadza  (TN)
-    TN=pos_false_tables_chiapet_merged$GM39_GM40$false_peaks[pos_false_tables_chiapet_merged$GM39_GM40$false_peaks$common_padj==FALSE,]))
+# 4 CASES
+confusion_data_chiapet=list(
+       # Both show common (TP)
+  list(TP=pos_false_tables_chiapet[[1]][[1]][pos_false_tables_chiapet[[1]][[1]]$common_pval==TRUE,],
+       # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
+       FP=pos_false_tables_chiapet[[1]][[1]][pos_false_tables_chiapet[[1]][[1]]$common_pval==FALSE,], 
+       # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
+       FN=pos_false_tables_chiapet[[1]][["false_peaks"]][pos_false_tables_chiapet[[1]][["false_peaks"]]$common_pval==TRUE,],
+       # SPP pokazuje nie i padj się zgadza  (TN)
+       TN=pos_false_tables_chiapet[[1]][["false_peaks"]][pos_false_tables_chiapet[[1]][["false_peaks"]]$common_pval==FALSE,]),
+  list(TP=pos_false_tables_chiapet[[4]][[1]][pos_false_tables_chiapet[[4]][[1]]$common_pval==TRUE,],
+       
+       # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
+       FP=pos_false_tables_chiapet[[4]][[1]][pos_false_tables_chiapet[[4]][[1]]$common_pval==FALSE,],
+       # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
+       FN=pos_false_tables_chiapet[[4]][["false_peaks"]][pos_false_tables_chiapet[[4]][["false_peaks"]]$common_pval==TRUE,],
+       # SPP pokazuje nie i padj się zgadza  (TN)
+       TN=pos_false_tables_chiapet[[4]][["false_peaks"]][pos_false_tables_chiapet[[4]][["false_peaks"]]$common_pval==FALSE,]),
+  
+  list(TP=pos_false_tables_chiapet[[7]][[1]][pos_false_tables_chiapet[[7]][[1]]$common_pval==TRUE,],
+       # Spp pokazuje tak, a padj pokazuje róźną siłę (FP)
+       FP=pos_false_tables_chiapet[[7]][[1]][pos_false_tables_chiapet[[7]][[1]]$common_pval==FALSE,],
+       # SPP pokazuje nie, a padj pokazuje, że siła jest taka sama (FN)
+       FN=pos_false_tables_chiapet[[7]][["false_peaks"]][pos_false_tables_chiapet[[7]][["false_peaks"]]$common_pval==TRUE,],
+       # SPP pokazuje nie i padj się zgadza  (TN)
+       TN=pos_false_tables_chiapet[[7]][["false_peaks"]][pos_false_tables_chiapet[[7]][["false_peaks"]]$common_pval==FALSE,]))
+
+names(confusion_data_chiapet)=names(common_chiapet_manorm)[1:3]
 
 ```
 
