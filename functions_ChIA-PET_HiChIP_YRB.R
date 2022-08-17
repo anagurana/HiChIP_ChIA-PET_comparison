@@ -311,9 +311,9 @@ create_table_common_peaks_with_info=function(norm, differential, conds, cell_lin
   colnames(common)[[5]]=paste(cell_lines[2],'occupancy', sep='.')
   
   common$isPadj=ifelse(common$padj<0.001, TRUE, FALSE)
-  common$isPval=ifelse(common$pval<0.05, TRUE, FALSE)
+  common$isPval=ifelse(common$pval<0.06, TRUE, FALSE)
   common$common_padj=ifelse(common$padj>=0.001, TRUE, FALSE)
-  common$common_pval=ifelse(common$pval>=0.05, TRUE, FALSE)
+  common$common_pval=ifelse(common$pval>=0.06, TRUE, FALSE)
   common$predicted_rev=ifelse(common[[paste0(cell_lines[1],".occupancy")]]==TRUE & 
                                 common[[paste0(cell_lines[2],".occupancy")]]==TRUE , TRUE, FALSE)
   return(common)

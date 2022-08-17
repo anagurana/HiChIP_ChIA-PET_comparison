@@ -307,13 +307,13 @@ set_ylim<<-c(-2,2)
 par(mar=c(3,3,3,3))
 layout(matrix(c(1,2,3,4,5,6,1,7,3,8,5,9),ncol=2),heights=c(1,3,1,3,1,3))
 plot.new()
-text(0.5,0.5,trios[1],cex=3,font=2)
+text(0.5,0.5,paste0(trios[1],' vs. ', trios[2]),cex=3,font=2)
 generate_manorm_plot(trios[1:2], han_norm_chiapet, han_raw_chiapet)
 plot.new()
-text(0.5,0.5,trios[2],cex=3,font=2)
+text(0.5,0.5,paste0(trios[1],' vs. ', trios[3]),cex=3,font=2)
 generate_manorm_plot(trios[c(1,3)], han_norm_chiapet, han_raw_chiapet)
 plot.new()
-text(0.5,0.5,trios[3],cex=3,font=2)
+text(0.5,0.5,paste0(trios[2],' vs. ', trios[3]),cex=3,font=2)
 generate_manorm_plot(trios[2:3], han_norm_chiapet , han_raw_chiapet)
 #After normalization
 generate_manorm_plot(trios[1:2], han_norm_chiapet)
@@ -466,7 +466,7 @@ names(han_pos_false_tables_chiapet_merged)=names(han_common_chiapet_manorm_merge
 han_confusion_tables_chiapet_merged=vector(mode="list", length=NROW(han_pos_false_tables_chiapet_merged))
 names(han_confusion_tables_chiapet_merged)=names(han_pos_false_tables_chiapet_merged)
 for (i in 1:NROW(han_confusion_tables_chiapet_merged)){
-  han_confusion_tables_chiapet_merged[i]=list(caret::confusionMatrix(factor(han_common_chiapet_manorm_merged[[names(han_confusion_tables_chiapet_merged)[i]]]$common_padj, levels=c(TRUE, FALSE)), 
+  han_confusion_tables_chiapet_merged[i]=list(caret::confusionMatrix(factor(han_common_chiapet_manorm_merged[[names(han_confusion_tables_chiapet_merged)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
                        factor(han_common_chiapet_manorm_merged[[names(han_confusion_tables_chiapet_merged)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
                        dnn=c("pval>0.05", "SPP_detected")))
 }
