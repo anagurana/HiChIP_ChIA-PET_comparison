@@ -311,9 +311,9 @@ create_table_common_peaks_with_info=function(norm, differential, conds, cell_lin
   colnames(common)[[5]]=paste(cell_lines[2],'occupancy', sep='.')
   
   common$isPadj=ifelse(common$padj<0.001, TRUE, FALSE)
-  common$isPval=ifelse(common$pval<0.06, TRUE, FALSE)
+  common$isPval=ifelse(common$pval<p_value, TRUE, FALSE)
   common$common_padj=ifelse(common$padj>=0.001, TRUE, FALSE)
-  common$common_pval=ifelse(common$pval>=0.06, TRUE, FALSE)
+  common$common_pval=ifelse(common$pval>=p_value, TRUE, FALSE)
   common$predicted_rev=ifelse(common[[paste0(cell_lines[1],".occupancy")]]==TRUE & 
                                 common[[paste0(cell_lines[2],".occupancy")]]==TRUE , TRUE, FALSE)
   return(common)
@@ -355,11 +355,6 @@ create_fp_tables_and_save_graphs=function(common,cell_lines, experiment, prefix,
   dev.off()
   
   return(tf_table)
-  
-  
-  # confusion_tb_GM38_GM39_hichip=caret::confusionMatrix(factor(common_hichip.GM38_GM39$common_padj, levels=c(TRUE, FALSE)), 
-  #                        factor(common_hichip.GM38_GM39$predicted_rev, levels=c(TRUE, FALSE)),
-  #                        dnn=c("padj>0.001", "SPP_detected"))
 }
 
 add_greater_and_lower_mean_ranges_tables=function(common_manorm, mean_range, cell_lines){

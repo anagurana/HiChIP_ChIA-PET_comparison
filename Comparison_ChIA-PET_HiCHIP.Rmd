@@ -1329,83 +1329,82 @@ confusion_data_hichip=list(
 names(confusion_data_hichip)=names(common_hichip_manorm)[1:3]
 
 ```
-#Select possible constant peaks
+# [HiChIP merged] Select possible constant peaks
 ```{r}
-manorm_find_const_peaks=function(pos_false_table, norm){
-  
-}
-
-possible_common_peaks_hichip=list(
-  poss_38_39=row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE & pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE),]),
-  poss_38_40=row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE & pos_false_table[[1]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE),]),
-  poss_39_40=row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE & pos_false_table[[1]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE),])
-)
-
-common_because_of_38=unique(
-  intersect(possible_common_peaks_hichip$poss_38_39, possible_common_peaks_hichip$poss_38_40),
-  intersect(possible_common_peaks_hichip$poss_38_39, row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[4]]$false_peaks[[paste0(trios[[4]],".occupancy")]]==TRUE & pos_false_table[[4]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE),]),),
-  intersect(possible_common_peaks_hichip$poss_38_40, )
-)
-
-
-# Between 38 and other cell_lines
-# 2571 vs 1773 --> 610 common
 
 pos_false_table=pos_false_tables_hichip
-fn_1=intersect(
-  row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE | pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE),]),
-  row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                                (pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE | pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE),]))
 
+### Were unique for pairs of cell lines
+# Between 38_39 and 40 --> + 1017
+# Between 38_40 and 39 --> + 2377
+# Between 39_40 and 38 --> + 722
 
-
-# Between 39 and other cell_lines
-# 2571 vs 2618 --> 968 common
-fn_2=intersect(
-  row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE | pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE),]),
-  row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                (pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE | pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE),]))
-
-# Between 40 and other cell_lines
-# 1773 vs 7569 --> 751 common
-fn_3=intersect(
-  row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                              (pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE | pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE),]),
-  row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                (pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE | pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE),]))
-
-# Dedublicate the peaks
-# 7472 peaks are constant
-id_constant_hichip_by_manorm_peaks=unique(c(fn_1, fn_2, fn_3))
-
-constant_hichip_by_manorm_peaks=norm_hichip_2rep[id_constant_hichip_by_manorm_peaks,]
-constant_hichip_by_manorm_peaks$by_spp=FALSE
-constant_hichip_by_manorm_peaks$by_manorm=TRUE
-
-constant_hichip_by_manorm_peaks.gr=GRanges(constant_hichip_by_manorm_peaks)
+hichip_fn_ids=list(
+  fn_38_39=intersect(
+  row.names(pos_false_table[[1]][[1]]),
+  unique(row.names(pos_false_table[[4]][[4]][pos_false_table[[4]][[4]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[7]][[4]][pos_false_table[[7]][[4]]$common_pval==TRUE,]))),
+  fn_38_40=intersect(
+  row.names(pos_false_table[[4]][[1]]),
+  unique(row.names(pos_false_table[[1]][[4]][pos_false_table[[1]][[4]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[7]][[5]][pos_false_table[[7]][[5]]$common_pval==TRUE,]))),
   
-unlist(true_common_peaks_ChIAPET, recursive = TRUE, use.names = TRUE) unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE)
+  fn_39_40=intersect(
+  row.names(pos_false_table[[7]][[1]]),
+  unique(row.names(pos_false_table[[1]][[5]][pos_false_table[[1]][[5]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[4]][[5]][pos_false_table[[4]][[5]]$common_pval==TRUE,]))),
+  
+### Were unique for each cell_line
+# Between 38 and other cell_lines --> 4266 vs 2911 >> 1729 common
+# Between 39 and other cell_lines --> 1136 vs 1450 >> 375 common
+# Between 40 and other cell_lines --> 4041 vs 5912 >> 3253 common
+  
+  fn_38=intersect(
+    row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                           
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE & 
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE ,]),
+    row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                               
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE &
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE,])),
+  fn_39=intersect(
+    row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                             
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==FALSE &
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE,]),
+    row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE &
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE,])),
+  fn_40=intersect(
+    row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                              
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==FALSE & 
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE,]),
+    row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE & 
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE,])))
 
+### Duplicate the peaks
+# 4116 peaks are constant and were supposed to be unique for PAIRS of cell lines
+id_constant_hichip_by_manorm_peaks_pairs=unique(unlist(hichip_fn_ids[1:3]))
+# 5357 peaks are constant and were supposed to be unique for cell lines
+id_constant_hichip_by_manorm_peaks_single_lines=unique(unlist(hichip_fn_ids[4:6]))
+
+constant_hichip_by_manorm_peaks=norm_hichip[c(id_constant_hichip_by_manorm_peaks_pairs, 
+                                              id_constant_hichip_by_manorm_peaks_single_lines),]
+
+# constant_hichip_by_manorm_peaks$by_spp=FALSE
+# constant_hichip_by_manorm_peaks$by_manorm=TRUE
+
+constant_hichip_by_manorm_peaks.gr=sort(GRanges(constant_hichip_by_manorm_peaks))
+
+# 4763 of 9473 are overlaping with ChIP-Seq
 subsetByOverlaps(constant_hichip_by_manorm_peaks.gr, true_common_peaks_ChIPSeq$constant_peaks)
+# 1075 of 9473 are actually overlaping with SPP detected peaks, but for some reason had false occupancy
+subsetByOverlaps(constant_hichip_by_manorm_peaks.gr, true_common_peaks_HiChIP$constant_peaks)
+# That's why we want to reduce these peaks. In total we have 30677 peaks, after reduction 29600 (2 more peaks were detected as overlapped)
+hichip_constant_peaks_with_manorm=IRanges::reduce(c(constant_hichip_by_manorm_peaks.gr, true_common_peaks_HiChIP$constant_peaks))
 
-IRanges::reduce(constant_hichip_by_manorm_peaks.gr, true_common_peaks_HiChIP$constant_peaks)
-
-subsetByOverlaps(constant_hichip_with_manorm.gr, true_common_peaks_HiChIP)
-
-cos.gr=GRanges(norm_hichip_2rep[unique(cos$peak),])
-subsetByOverlaps(IRanges::reduce(cos.gr+1000), IRanges::reduce(true_common_peaks_reduced_ChIPSeq$constant_peaks+1000))
-
-
-
-
-
-# 4054
-id_unconstant_hichip_by_manorm_peaks=unique(c(t1, t2, t3))
-norm_hichip_2rep[id_unconstant_hichip_by_manorm_peaks,]
-
-
-
-# How many and which peaks from them got the padj<0.001 whith aovBioCond
-# 1036 from 7472
-norm_hichip_2rep[row.names(res_hichip_rep2$all_trios[id_constant_hichip_by_manorm_peaks,][res_hichip_rep2$all_trios[id_constant_hichip_by_manorm_peaks,]$padj<0.001,]),][1:10,]
-
-# Add others true peaks
+# Let's do the overlap of all true peaks with ChIP-Seq constant peaks
+# 22022 from 29600 were overlapped (before only 18122, so +3900 new peaks), ChIP-Seq have 37332 peaks. 
+subsetByOverlaps(hichip_constant_peaks_with_manorm, true_common_peaks_ChIPSeq$constant_peaks)
 
 
 ```
@@ -1594,11 +1593,78 @@ names(confusion_data_chiapet_2rep)=names(common_chiapet_manorm_2rep)[1:3]
 
 ```
 
-# [ChIA-PET merged] MANorm data processing
+
+# [ChIA-PET merged] Creating additional columns with occupancy based on overlaps
+```{r}
+
+trios=c("GM19238", "GM19239", "GM19240")
+
+# # Create overlapping GRanges with bins (all of the peaks are overlapped)
+# 
+# overlaps_chiapet_with_bins.gr=GRangesList(GRanges(),GRanges(),GRanges())
+# names(overlaps_chiapet_with_bins.gr)=trios
+# for (cell_line in trios){
+#   overlaps_chiapet_with_bins.gr[[cell_line]]=subsetByOverlaps(chiapet_bins,peaks_with_motif_ChIAPET[[cell_line]])
+# }
+# 
+# # Convert those GRanges to data frames
+# 
+# overlaps_chiapet_with_bins.df=list()
+# for (cell_line in trios){
+#   overlaps_chiapet_with_bins.df[[cell_line]]=data.frame(overlaps_chiapet_with_bins.gr[[cell_line]])
+#   
+#   
+# }
+
+# Calculate occupancy by overlapping with selected peaks bins
+occupancy_by_overlaps_chiapet=list()
+for (cell_line in trios){
+  occupancy_by_overlaps_chiapet[[cell_line]]=as.integer(1:NROW(chiapet_bins) %in% unique(queryHits(findOverlaps(chiapet_bins,peaks_with_motif_ChIAPET[[cell_line]]))))
+}
+
+
+norm_inp_chiapet$GM19238.occupancy=occupancy_by_overlaps_chiapet$GM19238
+norm_inp_chiapet$GM19239.occupancy=occupancy_by_overlaps_chiapet$GM19239
+norm_inp_chiapet$GM19240.occupancy=occupancy_by_overlaps_chiapet$GM19240
+
+
+```
+
+
+# [ChIA-PET merged] MANorm input
 ```{r}
 experiment="chiapet"
 trios=c("GM19238", "GM19239", "GM19240")
 norm_inp_chiapet=data.frame(read.table(paste0(abs_path, "/", experiment, "/chiapet_merged_profile_bins.xls"), header = T))
+
+# See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by MANorms
+table_chiapet_occupancy_raw=list(
+  summary(as.logical(norm_inp_chiapet$GM19238.occupancy)),
+  summary(as.logical(norm_inp_chiapet$GM19239.occupancy)),
+  summary(as.logical(norm_inp_chiapet$GM19240.occupancy)))
+names(table_chiapet_occupancy_raw)=trios
+
+# Replace the occupancy by occupancy calculated from overlapping with bins
+occupancy_by_overlaps_chiapet=list()
+for (cell_line in trios){
+  occupancy_by_overlaps_chiapet[[cell_line]]=as.integer(1:NROW(chiapet_bins) %in% unique(queryHits(findOverlaps(chiapet_bins,peaks_with_motif_ChIAPET[[cell_line]]))))
+}
+
+norm_inp_chiapet$GM19238.occupancy=occupancy_by_overlaps_chiapet$GM19238
+norm_inp_chiapet$GM19239.occupancy=occupancy_by_overlaps_chiapet$GM19239
+norm_inp_chiapet$GM19240.occupancy=occupancy_by_overlaps_chiapet$GM19240
+
+# See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by overlapping
+table_chiapet_occupancy_overlapped=list(
+  summary(as.logical(norm_inp_chiapet$GM19238.occupancy)),
+  summary(as.logical(norm_inp_chiapet$GM19239.occupancy)),
+  summary(as.logical(norm_inp_chiapet$GM19240.occupancy)))
+names(table_chiapet_occupancy_overlapped)=trios
+
+```
+
+# [ChIA-PET merged] MANorm normalization
+```{r}
 
 ### Visualize the plots before/after normalization (Generating new plots and data (log2))
 raw_chiapet = log(norm_inp_chiapet[4:6] + 0.5, base = 2)
@@ -1607,9 +1673,9 @@ raw_chiapet = log(norm_inp_chiapet[4:6] + 0.5, base = 2)
 autosome <- !(norm_inp_chiapet$chrom %in% c("chrX", "chrY"))
 norm_chiapet <- normalize(norm_inp_chiapet, c(4:6), c(7:9), common.peak.regions = autosome)
 
-png(paste0('plots/',experiment,'_MAnorm_merRep_normalization.png'), res = 300, width = 4200, height = 4200)
+png(paste0('plots/',experiment,'_MAnorm_merRep_normalization_overlaps.png'), res = 300, width = 4200, height = 4200)
 
-# Generating new plots and data (log2)
+# Generation of new plots before/after normalization (log2)
 set_ylim<<-c(-2,2)
 par(mar=c(3,3,3,3))
 layout(matrix(c(1,2,3,4,5,6,1,7,3,8,5,9),ncol=2),heights=c(1,3,1,3,1,3))
@@ -1627,7 +1693,11 @@ generate_manorm_plot(trios[1:2], norm_chiapet)
 generate_manorm_plot(trios[c(1,3)], norm_chiapet)
 generate_manorm_plot(trios[2:3], norm_chiapet)
 dev.off()
+```
 
+#[ChIA-PET merged] Modeling of Mean-Variance Trend
+
+```{r}
 ### Construct a bioCond for each group of samples.
 conds_chiapet <- list(
   bioCond(norm_chiapet[4], norm_chiapet[7], name = trios[1]),
@@ -1635,12 +1705,8 @@ conds_chiapet <- list(
   bioCond(norm_chiapet[6], norm_chiapet[9], name = trios[3]))
 names(conds_chiapet)=trios
 
-### Perform between-group normalization.
-# autosome <- !(norm_inp_hichip$chrom %in% c("chrX", "chrY"))
-# conds_chiapet$blind=bioCond()
-# conds_hichip <- normBioCond(conds_hichip_2rep_raw, common.peak.regions = autosome)
-
-### Create a "blind" biocond, to compare two groups and not two samples
+### Create a "blind" biocond, that will treat two samples as replicates.
+# Only common peak regions of the two samples are considered to the occupied by the "Blind" bioCond
 
 conds_chiapet$blind_1 <- bioCond(norm_chiapet[c(4, 5)], norm_chiapet[c(7, 8)], occupy.num = 2)
 conds_chiapet$blind_2 <- bioCond(norm_chiapet[c(4, 6)], norm_chiapet[c(7, 9)], occupy.num = 2)
@@ -1671,6 +1737,12 @@ plotMeanVarCurve(conds_chiapet_meanCurve[[3]][3], subset = "occupied", ylim = c(
 plotMeanVarCurve(conds_chiapet_meanCurve[[4]][3], subset = "occupied", ylim = c(-7, 1))
 plotMeanVarCurve(conds_chiapet_meanCurve$all_trios[4], subset = "occupied", ylim = c(-7, 1))
 
+```
+
+# [ChIA-PET merged] Differential Tests
+
+```{r}
+
 ### # Perform differential tests
 res_chiapet=list(
   aovBioCond(conds_chiapet_meanCurve[[1]]),
@@ -1680,23 +1752,30 @@ res_chiapet=list(
 names(res_chiapet)=names(conds_chiapet_meanCurve)
 
 # Visualize the results
+p_value<<- 0.05
 
-png(paste0('plots/',experiment,'_MAnorm_merRep_trios_diff_test.png'), res = 300, width = 2200, height = 2200)
+png(paste0('plots/',experiment,'_MAnorm_merRep_trios_diff_test_pval_',p_value,'_overlaps_trial.png'), res = 300, width = 2200, height = 2200)
 par(mar=c(2.3,2.3,2.3,2.3))
 layout(matrix(c(1,2,3,4,1,5,3,4,1,6,3,4),ncol=3),heights=c(1,3,1,3,1,3))
 
 plot.new()
 text(0.5,0.5,"Within paris of trios ",cex=3,font=2)
-MAplot(res_chiapet[[2]], pval = 0.05, ylim = c(-2, 2), main=paste0(trios[1]," vs. ",trios[2]), line=0.2)
+MAplot(res_chiapet[[2]], pval = p_value, ylim = c(-2, 2), main=paste0(trios[1]," vs. ",trios[2]), line=0.2)
 abline(h = 0, lwd = 2, lty = 5, col = "green3")
 plot.new()
 text(0.5,0.5,"Within all trios ",cex=3,font=2)
-plot(res_chiapet[[1]], pval = 0.05,line=0.2)
-MAplot(res_chiapet[[3]], pval = 0.05,ylim = c(-2, 2), main=paste0(trios[1]," vs. ",cell_lines[3]), line=0.2)
+plot(res_chiapet[[1]], pval = p_value,line=0.2)
+MAplot(res_chiapet[[3]], pval = p_value,ylim = c(-2, 2), main=paste0(trios[1]," vs. ",trios[3]), line=0.2)
 abline(h = 0, lwd = 2, lty = 5, col = "green3")
-MAplot(res_chiapet[[4]], pval = 0.05,ylim = c(-2, 2), main=paste0(cell_lines[2]," vs. ",trios[3]),line=0.2)
+MAplot(res_chiapet[[4]], pval = p_value,ylim = c(-2, 2), main=paste0(trios[2]," vs. ",trios[3]),line=0.2)
 abline(h = 0, lwd = 2, lty = 5, col = "green3")
 dev.off()
+
+```
+
+#[ChIA-PET merged] Differential Tests - statistical power of identifying differential genomic intervals for merged and single replicates
+
+```{r}
 
 #Define the correlation between single and merged replicates
 correaltion_chiapet_mer_vs_2rep=c()
@@ -1731,7 +1810,7 @@ text(0.66, 0.66,paste0("cor = ",round(correaltion_chiapet_mer_vs_2rep[[4]],2)),c
 
 ```
 
-# [ChIA-PET merged] Analysis of the results 
+# [ChIA-PET merged] Analysis of the results: variable and constant peaks
 ```{r}
 experiment="ChIA-PET"
 
@@ -1743,11 +1822,11 @@ common_chiapet_manorm=list(
 names(common_chiapet_manorm)=create_short_name_for_col(trios)
 
 # Create additional tables with lower and higher values of mean values (select the squares)
-mean_range=c(10,10)
+mean_cutoff=10
 
-common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[1:2])
-common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[c(1,3)])
-common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_range, trios[2:3])
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_cutoff, trios[1:2])
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_cutoff, trios[c(1,3)])
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_cutoff, trios[2:3])
 
 # Create false pos tables
 par="isPval"
@@ -1765,14 +1844,46 @@ pos_false_tables_chiapet=list(
 
 names(pos_false_tables_chiapet)=names(common_chiapet_manorm)[c(1,4,5,2,6,7,3,8,9)]
 
-# Create confusion tables for every pairs of replicates and freater and lower ranges                  
+```
+
+[ChIA-PET merged] Confusion tables and data
+
+```{r}
+
+# Create confusion tables for every pairs of replicates and greater and lower ranges                  
 confusion_tables_chiapet=vector(mode="list", length=NROW(pos_false_tables_chiapet))
 names(confusion_tables_chiapet)=names(pos_false_tables_chiapet)
+
+peaks_excl_3_cell_line=list()
+names(peaks_excl_3_cell_line)=create_short_name_for_col(trios)
+
+# TODO create list with filtered peaks in order to create confusion matrices
+
+for (pair in names(peaks_excl_3_cell_line)){
+  peaks_excl_3_cell_line[pair]=
+}
+peaks_excl_3_cell_line=list(
+  
+)
+
+names(peaks_excl_3_cell_line)=create_short_name_for_col(trios)
+
+
+cos=anti_join(common_chiapet_manorm$GM38_GM39, common_chiapet_manorm$GM38_GM39[common_chiapet_manorm$GM38_GM39$GM19238.occupancy==0 & common_chiapet_manorm$GM38_GM39$GM19239.occupancy==0,])
+cos=anti_join(cos, cos[cos$chrom=="chrX" | cos$chrom=="chrY",])
+
+conf_38_39=caret::confusionMatrix(factor(cos$common_pval, levels=c(TRUE, FALSE)), 
+                       factor(cos$predicted_rev, levels=c(TRUE, FALSE)),
+                       dnn=c("pval>0.03", "SPP_detected"))
+
 for (i in 1:NROW(confusion_tables_chiapet)){
   confusion_tables_chiapet[i]=list(caret::confusionMatrix(factor(common_chiapet_manorm[[names(confusion_tables_chiapet)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
                        factor(common_chiapet_manorm[[names(confusion_tables_chiapet)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
-                       dnn=c("pval>0.05", "SPP_detected")))
+                       dnn=c("pval>0.03", "SPP_detected")))
 }
+
+data.frame(chiapet_bins)$start==overlaps_chiapet_with_bins.df$GM19238$start & data.frame(chiapet_bins)$end==overlaps_chiapet_with_bins.df$GM19238$end
+
 
 
 
@@ -1809,21 +1920,84 @@ names(confusion_data_chiapet)=names(common_chiapet_manorm)[1:3]
 
 ```
 
+[ChIA-PET merged] Select possible constant peaks
+```{r}
 
+pos_false_table=pos_false_tables_chiapet
 
+### Were unique for pairs of cell lines
+# Between 38_39 and 40 --> + 3510
+# Between 38_40 and 39 --> + 2362
+# Between 39_40 and 38 --> + 3805
 
+chiapet_fn_ids=list(
+  fn_38_39=intersect(
+  row.names(pos_false_table[[1]][[1]]),
+  unique(row.names(pos_false_table[[4]][[4]][pos_false_table[[4]][[4]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[7]][[4]][pos_false_table[[7]][[4]]$common_pval==TRUE,]))),
+  fn_38_40=intersect(
+  row.names(pos_false_table[[4]][[1]]),
+  unique(row.names(pos_false_table[[1]][[4]][pos_false_table[[1]][[4]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[7]][[5]][pos_false_table[[7]][[5]]$common_pval==TRUE,]))),
+  
+  fn_39_40=intersect(
+  row.names(pos_false_table[[7]][[1]]),
+  unique(row.names(pos_false_table[[1]][[5]][pos_false_table[[1]][[5]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[4]][[5]][pos_false_table[[4]][[5]]$common_pval==TRUE,]))),
+  
+### Were unique for each cell_line
+# Between 38 and other cell_lines --> 8647 vs 9996 >> 6077 common
+# Between 39 and other cell_lines --> 7773 vs 6897 >> 3548 common
+# Between 40 and other cell_lines --> 4770 vs 3701 >> 1174 common
+  
+  fn_38=intersect(
+    row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                           
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE & 
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE ,]),
+    row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                               
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE &
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE,])),
+  fn_39=intersect(
+    row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                             
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==FALSE &
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE,]),
+    row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE &
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE,])),
+  fn_40=intersect(
+    row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                              
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==FALSE & 
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE,]),
+    row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE & 
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE,])))
 
+### Duplicate the peaks
+# 9677 peaks are constant and were supposed to be unique for PAIRS of cell lines
+id_constant_chiapet_by_manorm_peaks_pairs=unique(unlist(chiapet_fn_ids[1:3]))
+# 10799 peaks are constant and were supposed to be unique for cell lines
+id_constant_chiapet_by_manorm_peaks_single_lines=unique(unlist(chiapet_fn_ids[4:6]))
 
+constant_chiapet_by_manorm_peaks=norm_chiapet[c(id_constant_chiapet_by_manorm_peaks_pairs, 
+                                              id_constant_chiapet_by_manorm_peaks_single_lines),]
 
+# constant_hichip_by_manorm_peaks$by_spp=FALSE
+# constant_hichip_by_manorm_peaks$by_manorm=TRUE
 
+constant_chiapet_by_manorm_peaks.gr=sort(GRanges(constant_chiapet_by_manorm_peaks))
 
+# 9297 of 20476 are overlaping with ChIP-Seq
+subsetByOverlaps(constant_chiapet_by_manorm_peaks.gr, true_common_peaks_ChIPSeq$constant_peaks)
+# 3364 of 20476 are actually overlaping with SPP detected peaks, but for some reason had false occupancy
+subsetByOverlaps(constant_chiapet_by_manorm_peaks.gr, true_common_peaks_ChIAPET$constant_peaks)
+# That's why we want to reduce these peaks. In total we have 40174 peaks, after reduction 36810
+chiapet_constant_peaks_with_manorm=IRanges::reduce(c(constant_chiapet_by_manorm_peaks.gr, true_common_peaks_ChIAPET$constant_peaks))
 
+# Let's do the overlap of all true peaks with ChIP-Seq constant peaks
+# 22291 from 36810 were overlapped (before only 15600, so +6691 new peaks), ChIP-Seq have 37332 peaks. 
+subsetByOverlaps(chiapet_constant_peaks_with_manorm, true_common_peaks_ChIPSeq$constant_peaks)
 
-
-
-
-
-
+```
 
 Rest of the script
 ```{r}
