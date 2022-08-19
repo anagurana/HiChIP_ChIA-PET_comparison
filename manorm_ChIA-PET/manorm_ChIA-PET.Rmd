@@ -1,0 +1,436 @@
+# Sources the functions file
+```{r}
+source("functions_to_manorm.R")
+```
+
+# Read CTCF motif file
+
+```{r}
+
+CTCF.hg38 = read.table("data/CTCF_hg38.txt")
+CTCF.hg38 = GRanges(seqnames = CTCF.hg38$V1, IRanges(start = CTCF.hg38$V3, width = CTCF.hg38$V4), strand = ifelse(CTCF.hg38$V5=='p', "+", "-"), score=CTCF.hg38$V6)
+CTCF.hg38 = CTCF.hg38[CTCF.hg38$score >0]
+
+```
+
+# Upload the peaks
+
+```{r}
+
+trios=c("GM19238", "GM19239", "GM19240")
+peaks_raw_ChIAPET=peaks_with_motif_ChIAPET=GRangesList("GM19238"=GRanges(), "GM19239"=GRanges(), "GM19240"=GRanges())
+
+for (cell_line in trios){
+  
+  peaks_raw_ChIAPET[[cell_line]]=read_peaks(paste0("data/",cell_line,"_merged_replicates.for.BROWSER.spp.z6.broadPeak"))
+  
+  peaks_with_motif_ChIAPET[[cell_line]]=peaks_raw_ChIAPET[[cell_line]][unique(queryHits(findOverlaps(IRanges::reduce(peaks_raw_ChIAPET[[cell_line]]), IRanges::reduce(CTCF.hg38))))]
+}
+
+```
+
+# Generation of BED files (peaks and bins) for the manorm_utils
+
+```{r}
+
+### ChIA-PET ###
+# Converting peaks.gr into peaks.bed 
+# (assumption) peaks are collected in the GRangesList
+dir.create("data/beds", showWarnings = FALSE)
+
+for (cell_line in trios){
+  write.table(unname(data.frame(seqnames(peaks_with_motif_ChIAPET[[cell_line]]), 
+                                start(peaks_with_motif_ChIAPET[[cell_line]]), 
+                                end(peaks_with_motif_ChIAPET[[cell_line]]))),
+              file=paste0("data/beds/peaks_ChIAPET_", cell_line, ".bed"),
+              sep="\t",row.names=FALSE, quote = FALSE)
+}
+
+#Generation of bins file
+chiapet_bins=IRanges::reduce(unlist(peaks_with_motif_ChIAPET, recursive = TRUE, use.names = TRUE))
+write.table(unname(data.frame(seqnames(chiapet_bins),
+                              start(chiapet_bins),
+                              end(chiapet_bins))),
+            "data/beds/bins_ChIAPET.bed",
+            sep="\t",row.names=FALSE, quote = FALSE)
+# After that bash script is being launched, which takes as the input bed files of peaks, bams and bins (7 files in total for the 3 cell lines)
+```
+
+# [ChIA-PET merged] MANorm input
+
+```{r}
+# Name of the experiment is being used during the saving of the plots
+experiment="ChIA-PET"
+# trios names are being used to name the components in the list
+trios=c("GM19238", "GM19239", "GM19240")
+# read the input file for MANorm (generated from MANorm_utils)
+norm_inp_chiapet=data.frame(read.table("data/chiapet_merged_profile_bins.xls", header = T))
+
+# See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by MANorms
+table_chiapet_occupancy_raw=list(
+  summary(as.logical(norm_inp_chiapet$GM19238.occupancy)),
+  summary(as.logical(norm_inp_chiapet$GM19239.occupancy)),
+  summary(as.logical(norm_inp_chiapet$GM19240.occupancy)))
+names(table_chiapet_occupancy_raw)=trios
+
+# Replace the occupancy by occupancy calculated from overlapping with bins
+occupancy_by_overlaps_chiapet=list()
+for (cell_line in trios){
+  occupancy_by_overlaps_chiapet[[cell_line]]=as.integer(1:NROW(chiapet_bins) %in% unique(queryHits(findOverlaps(chiapet_bins,peaks_with_motif_ChIAPET[[cell_line]]))))
+}
+
+norm_inp_chiapet$GM19238.occupancy=occupancy_by_overlaps_chiapet$GM19238
+norm_inp_chiapet$GM19239.occupancy=occupancy_by_overlaps_chiapet$GM19239
+norm_inp_chiapet$GM19240.occupancy=occupancy_by_overlaps_chiapet$GM19240
+
+# See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by overlapping
+table_chiapet_occupancy_overlapped=list(
+  summary(as.logical(norm_inp_chiapet$GM19238.occupancy)),
+  summary(as.logical(norm_inp_chiapet$GM19239.occupancy)),
+  summary(as.logical(norm_inp_chiapet$GM19240.occupancy)))
+names(table_chiapet_occupancy_overlapped)=trios
+
+```
+
+# [ChIA-PET merged] MANorm normalization
+
+```{r}
+### Visualize the plots before/after normalization (log2)
+raw_chiapet = log(norm_inp_chiapet[4:6] + 0.5, base = 2)
+
+### Normalization between the cell lines
+autosome <- !(norm_inp_chiapet$chrom %in% c("chrX", "chrY"))
+norm_chiapet <- normalize(norm_inp_chiapet, c(4:6), c(7:9), common.peak.regions = autosome)
+norm_chiapet$index=row.names(norm_chiapet)
+
+dir.create("plots", showWarnings = FALSE)
+png(paste0('plots/',experiment,'_MAnorm_merRep_normalization.png'), res = 300, width = 4200, height = 4200)
+
+options(warn=-1)
+# Generation of new plots before/after normalization (log2)
+set_ylim<<-c(-2,2)
+par(mar=c(3,3,3,3))
+layout(matrix(c(1,2,3,4,5,6,1,7,3,8,5,9),ncol=2),heights=c(1,3,1,3,1,3))
+plot.new()
+text(0.5,0.5,paste0(trios[1],' vs. ', trios[2]),cex=3,font=2)
+generate_manorm_plot(trios[1:2], norm_chiapet, raw_chiapet)
+plot.new()
+text(0.5,0.5,paste0(trios[1],' vs. ', trios[3]),cex=3,font=2)
+generate_manorm_plot(trios[c(1,3)], norm_chiapet, raw_chiapet)
+plot.new()
+text(0.5,0.5,paste0(trios[2],' vs. ', trios[3]),cex=3,font=2)
+generate_manorm_plot(trios[2:3], norm_chiapet , raw_chiapet)
+#After normalization
+generate_manorm_plot(trios[1:2], norm_chiapet)
+generate_manorm_plot(trios[c(1,3)], norm_chiapet)
+generate_manorm_plot(trios[2:3], norm_chiapet)
+dev.off()
+options(warn=0)
+
+```
+
+# [ChIA-PET merged] Modeling of Mean-Variance Trend
+
+```{r}
+
+### Construct a bioCond for each group of the samples.
+conds_chiapet <- list(
+  bioCond(norm_chiapet[4], norm_chiapet[7], name = trios[1]),
+  bioCond(norm_chiapet[5], norm_chiapet[8], name = trios[2]),
+  bioCond(norm_chiapet[6], norm_chiapet[9], name = trios[3]))
+names(conds_chiapet)=trios
+
+### Create a "blind" biocond, that will treat two samples as replicates.
+# Only common peak regions of the two samples are considered to the occupied by the "Blind" bioCond
+
+conds_chiapet$blind_1 <- bioCond(norm_chiapet[c(4, 5)], norm_chiapet[c(7, 8)], occupy.num = 2)
+conds_chiapet$blind_2 <- bioCond(norm_chiapet[c(4, 6)], norm_chiapet[c(7, 9)], occupy.num = 2)
+conds_chiapet$blind_3 <- bioCond(norm_chiapet[c(5, 6)], norm_chiapet[c(8, 9)], occupy.num = 2)
+conds_chiapet$blind_common <- bioCond(norm_chiapet[c(4, 5, 6)], norm_chiapet[c(7, 8, 9)], occupy.num = 3)
+
+names(conds_chiapet)[4:7]=c(paste0("blind_", trios[1],"_",trios[2]), 
+                            paste0("blind_", trios[1],"_",trios[3]),
+                            paste0("blind_", trios[2],"_",trios[3]),
+                            "blind_common")
+
+conds_chiapet_meanCurve=list(fitMeanVarCurve(conds_chiapet[c(1, 2, 3, 7)], method = "parametric",
+                                             occupy.only = TRUE, init.coef = c(0.1, 10)),
+                             fitMeanVarCurve(conds_chiapet[c(1, 2, 4)], method = "parametric",
+                                             occupy.only = TRUE, init.coef = c(0.1, 10)),
+                             fitMeanVarCurve(conds_chiapet[c(1, 3, 5)], method = "parametric",
+                                             occupy.only = TRUE, init.coef = c(0.1, 10)),
+                             fitMeanVarCurve(conds_chiapet[c(2, 3, 6)], method = "parametric",
+                                             occupy.only = TRUE, init.coef = c(0.1, 10)))
+names(conds_chiapet_meanCurve)=c("all_trios", 
+                                 paste0(trios[1],"_",trios[2]),
+                                 paste0(trios[1],"_",trios[3]), 
+                                 paste0(trios[2],"_",trios[3]))
+
+# Visualize mean-variance trend along with the fitted MVC. (Plots are not being saved)
+plotMeanVarCurve(conds_chiapet_meanCurve[[2]][3], subset = "occupied", ylim = c(-7, 1))
+plotMeanVarCurve(conds_chiapet_meanCurve[[3]][3], subset = "occupied", ylim = c(-7, 1))
+plotMeanVarCurve(conds_chiapet_meanCurve[[4]][3], subset = "occupied", ylim = c(-7, 1))
+plotMeanVarCurve(conds_chiapet_meanCurve$all_trios[4], subset = "occupied", ylim = c(-7, 1))
+
+```
+
+# [ChIA-PET merged] Differential Tests
+
+```{r}
+
+# Set the desired p_value
+p_value<<- 0.05
+
+### Perform differential tests
+res_chiapet=list(
+  aovBioCond(conds_chiapet_meanCurve[[1]]),
+  diffTest(conds_chiapet_meanCurve[[2]][[1]], conds_chiapet_meanCurve[[2]][[2]]),
+  diffTest(conds_chiapet_meanCurve[[3]][[1]], conds_chiapet_meanCurve[[3]][[2]]),
+  diffTest(conds_chiapet_meanCurve[[4]][[1]], conds_chiapet_meanCurve[[4]][[2]]))
+names(res_chiapet)=names(conds_chiapet_meanCurve)
+
+# Visualize the results
+
+png(paste0('plots/',experiment,'_MAnorm_merRep_trios_diff_test_pval_',p_value,'.png'), res = 300, width = 2200, height = 2200)
+par(mar=c(2.3,2.3,2.3,2.3))
+layout(matrix(c(1,2,3,4,1,5,3,4,1,6,3,4),ncol=3),heights=c(1,3,1,3,1,3))
+
+options(warn=-1)
+plot.new()
+text(0.5,0.5,"Within paris of trios ",cex=3,font=2)
+MAplot(res_chiapet[[2]], pval = p_value, ylim = c(-2, 2), main=paste0(trios[1]," vs. ",trios[2]), line=0.2)
+abline(h = 0, lwd = 2, lty = 5, col = "green3")
+plot.new()
+text(0.5,0.5,"Within all trios ",cex=3,font=2)
+plot(res_chiapet[[1]], pval = p_value,line=0.2)
+MAplot(res_chiapet[[3]], pval = p_value,ylim = c(-2, 2), main=paste0(trios[1]," vs. ",trios[3]), line=0.2)
+abline(h = 0, lwd = 2, lty = 5, col = "green3")
+MAplot(res_chiapet[[4]], pval = p_value,ylim = c(-2, 2), main=paste0(trios[2]," vs. ",trios[3]),line=0.2)
+abline(h = 0, lwd = 2, lty = 5, col = "green3")
+dev.off()
+options(warn=0)
+
+```
+
+# [ChIA-PET merged] Analysis of the results: Show which peaks were filtered by pval based on their mean_value
+
+```{r}
+experiment="ChIA-PET"
+
+# Create tables that will include all important information for the analysis
+common_chiapet_manorm=list(
+  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet, trios[1:2]),
+  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet,trios[c(1,3)]),
+  create_table_common_peaks_with_info(norm_chiapet, res_chiapet, conds_chiapet, trios[2:3]))
+names(common_chiapet_manorm)=create_short_name_for_col(trios)
+
+# Create additional tables with lower and higher values of mean values (select the squares)
+mean_cutoff=10
+
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_cutoff, trios[1:2])
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_cutoff, trios[c(1,3)])
+common_chiapet_manorm=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm, mean_cutoff, trios[2:3])
+
+# Create tables and graphs that will show which mean values have cell lines and their pval
+dir.create("plots/mean_values", showWarnings = FALSE)
+
+par="isPval"
+
+pos_false_tables_chiapet=list(
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[1]],trios[1:2], experiment, "all_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[4]],trios[1:2], experiment, "mean>=10_mrgRep", par),      
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[5]],trios[1:2], experiment, "mean<10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[2]],trios[c(1,3)], experiment, "all_mrgBins", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[6]],trios[c(1,3)], experiment, "mean>=10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[7]],trios[c(1,3)], experiment, "mean<10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[3]],trios[2:3], experiment, "all_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[8]],trios[2:3], experiment, "mean>=10_mrgRep", par),
+  create_fp_tables_and_save_graphs(common_chiapet_manorm[[9]],trios[2:3], experiment, "mean<10_mrgRep", par))
+
+names(pos_false_tables_chiapet)=names(common_chiapet_manorm)[c(1,4,5,2,6,7,3,8,9)]
+
+```
+
+[ChIA-PET merged] Confusion matrices
+
+```{r}
+# List that contains filtered peaks (wout sex chromosomes and peaks that are coming from 3 cell line) 
+# They are being used to create confusion matrices
+peaks_excl_3_cell_line_and_sex_chr=vector(mode = "list", length = 9)
+names(peaks_excl_3_cell_line_and_sex_chr)=names(pos_false_tables_chiapet)
+n=cell1=1
+cell2=2
+
+for (pair in names(peaks_excl_3_cell_line_and_sex_chr)){
+  tmp1=invisible(anti_join(common_chiapet_manorm[[pair]], 
+                 common_chiapet_manorm[[pair]][common_chiapet_manorm[[pair]]$chrom=="chrX" |
+                                               common_chiapet_manorm[[pair]]$chrom=="chrY",],
+                 by = c("chrom", "start", "end")))
+  tmp1=invisible(anti_join(tmp1, tmp1[tmp1[[paste0(trios[cell1],".occupancy")]]==0 & 
+                         tmp1[[paste0(trios[cell2],".occupancy")]]==0,],
+                 by = c("chrom", "start", "end")))
+  n=n+1
+  if (n==4){cell2=cell2+1}
+  if (n==7){cell1=cell1+1}
+  
+  peaks_excl_3_cell_line_and_sex_chr[[pair]]=tmp1
+  rm(tmp1)
+}
+rm(cell1, cell2, n, pair)
+
+# Create confusion tables for every pairs of replicates and greater and lower ranges                  
+confusion_tables_chiapet=vector(mode="list", length=NROW(pos_false_tables_chiapet))
+names(confusion_tables_chiapet)=names(pos_false_tables_chiapet)
+
+for (i in 1:NROW(confusion_tables_chiapet)){
+  confusion_tables_chiapet[i]=list(caret::confusionMatrix(factor(peaks_excl_3_cell_line_and_sex_chr[[names(confusion_tables_chiapet)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
+                       factor(peaks_excl_3_cell_line_and_sex_chr[[names(confusion_tables_chiapet)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
+                       dnn=c(paste0("pval>",p_value), "SPP_detected")))
+}
+
+# Table that are lying under the confusion matrices (TP, TN, FP, FN)
+# 4 CASES
+confusion_data_chiapet=vector(mode="list", length=3)
+names(confusion_data_chiapet)=create_short_name_for_col(trios)
+
+cell1=n=1
+cell2=2
+for (pair in names(confusion_data_chiapet)){
+  confusion_data_chiapet[[pair]]=
+    # Both show common (TP)
+    list(
+      TP=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==TRUE &
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==1 &
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==1,],
+      # Spp shows yes, but pval shows different strength (FP)
+      FP=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==FALSE &
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==1 &
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==1,],
+      # SPP shows no, but pval shows, że siła jest taka sama (FN)
+      FN=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==TRUE &
+                                                      (peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==0 |
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==0),],
+       # SPP shows no and manorm agrees (TN)
+       TN=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==FALSE &
+                                                      (peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==0 |
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==0),])
+    n=n+1
+    if(n==2){cell2=cell2+1}
+    if(n==3){cell1=cell1+1}
+}
+rm(cell1, cell2, n, pair)
+
+```
+
+[ChIA-PET merged] Select possible constant peaks
+
+```{r}
+
+confusion_data=confusion_data_chiapet
+
+chiapet_fn_ids=list(
+  
+  ### PAIRS of cell lines ###
+  
+  # Probable constant peaks are those, in which peaks for 2 cell lines are TP, and for the third line FN
+  # For examples, if GM38_GM39 are TP (by SPP and pval) and GM38_GM40 are negative (by SPP), 
+  # but positive by pval (>(0.05)) than those peaks are considered to be constant
+  
+# Results
+  # Between 38_39 and 40 --> + 3510
+  # Between 38_40 and 39 --> + 2362
+  # Between 39_40 and 38 --> + 3805
+  
+  fn_38_39=intersect(
+    confusion_data$GM38_GM39$TP$norm.index,
+    unique(confusion_data$GM38_GM40$FN[confusion_data$GM38_GM40$FN$GM19240.occupancy==FALSE,]$norm.index,
+           confusion_data$GM39_GM40$FN[confusion_data$GM39_GM40$FN$GM19240.occupancy==FALSE,]$norm.index)),
+  fn_38_40=intersect(
+    confusion_data$GM38_GM40$TP$norm.index,
+    unique(confusion_data$GM38_GM39$FN[confusion_data$GM38_GM39$FN$GM19239.occupancy==FALSE,]$norm.index,
+           confusion_data$GM39_GM40$FN[confusion_data$GM39_GM40$FN$GM19239.occupancy==FALSE,]$norm.index)),
+  fn_39_40=intersect(
+    confusion_data$GM39_GM40$TP$norm.index,
+    unique(confusion_data$GM38_GM39$FN[confusion_data$GM38_GM39$FN$GM19238.occupancy==FALSE,]$norm.index,
+           confusion_data$GM38_GM40$FN[confusion_data$GM38_GM40$FN$GM19238.occupancy==FALSE,]$norm.index)),
+  
+  ### SINGLE CELL LINE ###
+  
+  # Peaks were 
+  
+  # Probable constant peaks are those, in which peaks for 2 cell lines are TP, and for the third line FN
+  # For examples, if GM38_GM39 are TP (by SPP and pval) and GM38_GM40 are negative (by SPP), 
+  # but positive by pval (>(0.05)) than those peaks are considered to be constant
+  
+# Results
+  # Between 38 and other cell_lines --> 8647 vs 9996 >> 6077 common
+  # Between 39 and other cell_lines --> 7773 vs 6897 >> 3548 common
+  # Between 40 and other cell_lines --> 4770 vs 3701 >> 1174 common
+  
+  fn_38=intersect(
+    confusion_data$GM38_GM39$FN[confusion_data$GM38_GM39$FN$GM19238.occupancy==TRUE,]$norm.index,
+    confusion_data$GM38_GM40$FN[confusion_data$GM38_GM40$FN$GM19238.occupancy==TRUE,]$norm.index),
+
+  fn_39=intersect(
+    confusion_data$GM38_GM39$FN[confusion_data$GM38_GM39$FN$GM19239.occupancy==TRUE,]$norm.index,
+    confusion_data$GM39_GM40$FN[confusion_data$GM39_GM40$FN$GM19239.occupancy==TRUE,]$norm.index),
+
+  fn_40=intersect(
+    confusion_data$GM38_GM40$FN[confusion_data$GM38_GM40$FN$GM19240.occupancy==TRUE,]$norm.index,
+    confusion_data$GM39_GM40$FN[confusion_data$GM39_GM40$FN$GM19240.occupancy==TRUE,]$norm.index))
+
+### Deduplicate the peaks
+# 8928 peaks are constant and were supposed to be unique for PAIRS of cell lines
+id_constant_chiapet_by_manorm_peaks_pairs=unique(unlist(chiapet_fn_ids[1:3]))
+# 10405 peaks are constant and were supposed to be unique for cell lines
+id_constant_chiapet_by_manorm_peaks_single_lines=unique(unlist(chiapet_fn_ids[4:6]))
+
+# Get peaks using their indexes
+# 19333 of possible unique peaks
+constant_chiapet_by_manorm_peaks=norm_chiapet[sort(c(id_constant_chiapet_by_manorm_peaks_pairs, 
+                                              id_constant_chiapet_by_manorm_peaks_single_lines)),]
+### New detected constant peaks by MAnorm
+constant_chiapet_by_manorm_peaks.gr=sort(GRanges(constant_chiapet_by_manorm_peaks))
+
+# Next overlaps could be performed. 
+# Below are my results
+
+# ### Overlapping of the peaks
+# # 8625 of 19333 are overlaping with ChIP-Seq constant peaks
+# subsetByOverlaps(constant_chiapet_by_manorm_peaks.gr, true_common_peaks_ChIPSeq$constant_peaks)
+# 
+# # 2652 of 17686 are actually overlaping with SPP detected peaks, 
+# # but for some reason had false occupancy (some of them are narrow)
+# subsetByOverlaps(constant_chiapet_by_manorm_peaks.gr, true_common_peaks_ChIAPET$constant_peaks)
+# 
+# # That's why we want to reduce these peaks. In total we have 39031 (19333+19698) peaks, 
+# # after reduction 36379 (so minus overlapped peaks 2652)
+# chiapet_constant_peaks_with_manorm=IRanges::reduce(c(constant_chiapet_by_manorm_peaks.gr, true_common_peaks_ChIAPET$constant_peaks))
+# 
+# # How many initial peaks from ChIA-PET are overlapping with ChIP-Seq constant peaks
+# # 15600
+# subsetByOverlaps(true_common_peaks_ChIAPET$constant_peaks, true_common_peaks_ChIPSeq$constant_peaks)
+# 
+# 
+# # Let's do the overlap of all true peaks with ChIP-Seq constant peaks
+# # 22212 from 36379 were overlapped (before only 15600, so +6612 new peaks), ChIP-Seq has 37332 peaks. 
+# subsetByOverlaps(chiapet_constant_peaks_with_manorm, true_common_peaks_ChIPSeq$constant_peaks)
+# 
+# # Check which new peaks were being  ADDITIONALY detected by manorm
+# subsetByOverlaps(chiapet_constant_peaks_with_manorm, true_common_peaks_ChIPSeq$constant_peaks, invert=TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

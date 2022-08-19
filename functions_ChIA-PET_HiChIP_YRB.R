@@ -19,8 +19,8 @@ suppressMessages(library(tidyverse))
 suppressMessages(library(ggrepel))
 suppressMessages(library(IRanges))
 suppressMessages(library(patchwork))
-library(caret)
-library(MAnorm2)
+suppressMessages(library(caret))
+suppressMessages(library(MAnorm2))
 
 
 get_peaks_path <- function(exp_type, cell_line){
@@ -306,7 +306,8 @@ create_table_common_peaks_with_info=function(norm, differential, conds, cell_lin
                     conds[[cell_lines[2]]]$occupancy,
                     differential[[paste0(cell_lines[1],"_",cell_lines[2])]],
                     conds[[cell_lines[1]]]$norm.signal,
-                    conds[[cell_lines[2]]]$norm.signal)
+                    conds[[cell_lines[2]]]$norm.signal,
+                    norm$index)
   colnames(common)[[4]]=paste(cell_lines[1],'occupancy', sep='.')
   colnames(common)[[5]]=paste(cell_lines[2],'occupancy', sep='.')
   
@@ -357,22 +358,23 @@ create_fp_tables_and_save_graphs=function(common,cell_lines, experiment, prefix,
   return(tf_table)
 }
 
-add_greater_and_lower_mean_ranges_tables=function(common_manorm, mean_range, cell_lines){
+add_greater_and_lower_mean_ranges_tables=function(common_manorm, mean_cutoff, cell_lines){
   comp_cell_lines=paste0(paste0(str_sub(cell_lines[1],1,2),str_sub(cell_lines[1],start=6)),"_",paste0(str_sub(cell_lines[2],1,2),str_sub(cell_lines[2],start=6)))
   
   i=length(common_manorm)
   
-  common_manorm[[i+1]]=common_manorm[[comp_cell_lines]][common_manorm[[comp_cell_lines]][[paste0(cell_lines[1],".mean")]]>=mean_range[1]&                                                   
-                                                          common_manorm[[comp_cell_lines]][[paste0(cell_lines[2],".mean")]]>=mean_range[2],]
+  common_manorm[[i+1]]=common_manorm[[comp_cell_lines]][common_manorm[[comp_cell_lines]][[paste0(cell_lines[1],".mean")]]>=mean_cutoff&                                                   
+                                                          common_manorm[[comp_cell_lines]][[paste0(cell_lines[2],".mean")]]>=mean_cutoff,]
   
-  common_manorm[[i+2]]=common_manorm[[comp_cell_lines]][common_manorm[[comp_cell_lines]][[paste0(cell_lines[1],".mean")]]<mean_range[1]&                                                                        
-                                            common_manorm[[comp_cell_lines]][[paste0(cell_lines[2],".mean")]]<mean_range[2],]
+  common_manorm[[i+2]]=common_manorm[[comp_cell_lines]][common_manorm[[comp_cell_lines]][[paste0(cell_lines[1],".mean")]]<mean_cutoff&                                                                        
+                                                          common_manorm[[comp_cell_lines]][[paste0(cell_lines[2],".mean")]]<mean_cutoff,]
   
   names(common_manorm)[(i+1):(i+2)]=c(paste0(comp_cell_lines, "_mean_gr10"),
                                       paste0(comp_cell_lines, "_mean_lw10"))
   
   return(common_manorm)
 }
+
 
 create_short_name_for_col=function(trios){
   names=c(

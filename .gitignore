@@ -3,6 +3,7 @@ hichip/
 chiapet/
 chipseq/
 CTCF_hg38.txt
+manorm_ChIA-PET/data/
 
 # Reference scripts
 Michal_scripts/
@@ -19,3 +20,4 @@ __pycache__
 .DS_Store
 comparison.RData
 .RData
+.Rproj.user

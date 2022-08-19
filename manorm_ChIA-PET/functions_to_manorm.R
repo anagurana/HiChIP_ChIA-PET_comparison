@@ -1,5 +1,25 @@
-library(MAnorm2)
-library(caret)
+suppressMessages(library(GenomicRanges))
+suppressMessages(library(IRanges))
+suppressMessages(library(ggplot2))
+suppressMessages(library(patchwork))
+suppressMessages(library(ggrepel))
+suppressMessages(library(data.table))
+suppressMessages(library(dplyr))
+suppressMessages(library(MAnorm2))
+suppressMessages(library(caret))
+
+
+### Function that reads peak files
+
+read_peaks=function(peaks_path){
+  peaks.tb <- read.table(peaks_path)
+  peaks.gr <- GRanges(seqnames = peaks.tb$V1, IRanges(
+    start = peaks.tb$V2, end = peaks.tb$V3), strand = '*',
+    pval=10**-peaks.tb$V8, qval = 10^-peaks.tb$V9)
+  peaks.gr=sort(peaks.gr)
+  return(peaks.gr)
+}
+
 
 ### Function that generates MAnorm single plot and scales it properly
 
@@ -45,7 +65,8 @@ create_table_common_peaks_with_info=function(norm, differential, conds, cell_lin
                     conds[[cell_lines[2]]]$occupancy,
                     differential[[paste0(cell_lines[1],"_",cell_lines[2])]],
                     conds[[cell_lines[1]]]$norm.signal,
-                    conds[[cell_lines[2]]]$norm.signal)
+                    conds[[cell_lines[2]]]$norm.signal,
+                    norm$index)
   colnames(common)[[4]]=paste(cell_lines[1],'occupancy', sep='.')
   colnames(common)[[5]]=paste(cell_lines[2],'occupancy', sep='.')
   
