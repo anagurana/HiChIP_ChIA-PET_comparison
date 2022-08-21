@@ -14,7 +14,6 @@ Inside of each directory there is a folder, that contain the run names
 "
 
 ```{r}
-abs_path<<-"/Users/aleksander.ostruk/Documents/asia_master"
 upd_functions=function(){
   source("/Users/aleksander.ostruk/Documents/asia_master/functions_ChIA-PET_HiChIP_YRB.R")
 }
@@ -23,7 +22,7 @@ upd_functions=function(){
 # Read CTCF motif file
 ```{r}
 # Read CTCF motif peaks
-CTCF.hg38 = read.table(file.path(abs_path, "CTCF_hg38.txt"))
+CTCF.hg38 = read.table(file.path("data/CTCF_hg38.txt"))
 CTCF.hg38 = GRanges(seqnames = CTCF.hg38$V1, IRanges(start = CTCF.hg38$V3, width = CTCF.hg38$V4), strand = ifelse(CTCF.hg38$V5=='p', "+", "-"), score=CTCF.hg38$V6)
 CTCF.hg38 = CTCF.hg38[CTCF.hg38$score >0]
 ```
@@ -598,7 +597,7 @@ for (cell_line in cell_lines){
   write.table(unname(data.frame(seqnames(peaks_with_motif_ChIAPET[[cell_line]]), 
                                 start(peaks_with_motif_ChIAPET[[cell_line]]), 
                                 end(peaks_with_motif_ChIAPET[[cell_line]]))),
-              paste0(abs_path, "/chiapet/", "/peaks_ChIAPET_", cell_line, ".bed"),
+              paste0("data/chiapet/peaks_ChIAPET_", cell_line, ".bed"),
               sep="\t",row.names=FALSE, quote = FALSE)
 }
 
@@ -607,7 +606,7 @@ chiapet_bins=IRanges::reduce(unlist(peaks_with_motif_ChIAPET, recursive = TRUE, 
 write.table(unname(data.frame(seqnames(chiapet_bins),
                               start(chiapet_bins),
                               end(chiapet_bins))),
-            paste0(abs_path, "/chiapet/bins_ChIAPET.bed"),
+            paste0("data//chiapet/bins_ChIAPET.bed"),
             sep="\t",row.names=FALSE, quote = FALSE)
 
 
@@ -618,7 +617,7 @@ for (cell_line in cell_lines){
   write.table(unname(data.frame(seqnames(peaks_with_motif_HiChIP[[cell_line]]), 
                                 start(peaks_with_motif_HiChIP[[cell_line]]), 
                                 end(peaks_with_motif_HiChIP[[cell_line]]))),
-              paste0(abs_path, "/hichip/", "peaks_HiChIP_", cell_line, ".bed"),
+              paste0("data/hichip/peaks_HiChIP_", cell_line, ".bed"),
               sep="\t",row.names=FALSE, quote = FALSE)
 }
 
@@ -627,7 +626,7 @@ hichip_bins=IRanges::reduce(unlist(peaks_with_motif_HiChIP, recursive = TRUE, us
 write.table(unname(data.frame(seqnames(hichip_bins),
                               start(hichip_bins),
                               end(hichip_bins))),
-            paste0(abs_path, "/hichip/bins_HiChIP.bed"),
+            paste0("data/hichip/bins_HiChIP.bed"),
             sep="\t",row.names=FALSE, quote = FALSE)
 
 ### HiChIP 2 replicates ###
@@ -638,7 +637,7 @@ for (cell_line in cell_lines){
   write.table(unname(data.frame(seqnames(rep2_peaks_all_with_motif_HiChIP[[cell_line]]), 
                                 start(rep2_peaks_all_with_motif_HiChIP[[cell_line]]), 
                                 end(rep2_peaks_all_with_motif_HiChIP[[cell_line]]))),
-              paste0(abs_path, "/hichip/", cell_line, "/peaks_HiChIP_", cell_line, ".bed"),
+              paste0("data/hichip/", cell_line, "/peaks_HiChIP_", cell_line, ".bed"),
               sep="\t",row.names=FALSE, quote = FALSE)
 }
 
@@ -655,7 +654,7 @@ hichip_bins=IRanges::reduce(unlist(peaks_with_motif_HiChIP, recursive = TRUE, us
 write.table(unname(data.frame(seqnames(hichip_bins),
                               start(hichip_bins),
                               end(hichip_bins))),
-            paste0(abs_path, "/hichip/bins_HiChIP.bed"),
+            paste0("data/hichip/bins_HiChIP.bed"),
             sep="\t",row.names=FALSE, quote = FALSE)
 
 ### ChIAPET 2 replicates ###
@@ -666,7 +665,7 @@ for (cell_line in cell_lines){
   write.table(unname(data.frame(seqnames(rep2_peaks_with_motif_ChIAPET[[cell_line]]), 
                                 start(rep2_peaks_with_motif_ChIAPET[[cell_line]]), 
                                 end(rep2_peaks_with_motif_ChIAPET[[cell_line]]))),
-              paste0(abs_path, "/chiapet/peaks_ChIAPET_", cell_line, ".bed"),
+              paste0("data/chiapet/peaks_ChIAPET_", cell_line, ".bed"),
               sep="\t",row.names=FALSE, quote = FALSE)
 }
 
@@ -683,7 +682,7 @@ chiapet_bins=IRanges::reduce(unlist(peaks_with_motif_ChIAPET, recursive = TRUE, 
 write.table(unname(data.frame(seqnames(chiapet_bins),
                               start(chiapet_bins),
                               end(chiapet_bins))),
-            paste0(abs_path, "/chiapet/bins_ChIAPET.bed"),
+            paste0("data/chiapet/bins_ChIAPET.bed"),
             sep="\t",row.names=FALSE, quote = FALSE)
 
 ```
@@ -697,22 +696,22 @@ library(MAnorm2)
 
 experiment="chiapet"
 manorms_input_chiapet.df=data.frame(read.table(
-  paste0(abs_path, "/", experiment, "/narrow_peaks_profile_bins.xls"), header = T))
+  paste0("data/", experiment, "/narrow_peaks_profile_bins.xls"), header = T))
 norm=normalize(manorms_input_chiapet.df, 4:6, 7:9)
 
-manorms_input_chiapet_ref_bin=data.frame(read.table(paste0(abs_path, "/", experiment, "/fixed_size_profile_bins.xls"), header = T))
+manorms_input_chiapet_ref_bin=data.frame(read.table(paste0("data/", experiment, "/fixed_size_profile_bins.xls"), header = T))
 manorms_input_chiapet_ref_bin.gr=GRanges(manorms_input_chiapet_ref_bin)
 norm_ref_bins_chiapet=normalize(manorms_input_chiapet_ref_bin, 4:6, 7:9)
 
 # From cluster
 
-norm_inp_chiapet_eden_paired=data.frame(read.table(paste0(abs_path, "/", experiment, "/ref_bins_paired_profile_bins.xls"), header = T))
+norm_inp_chiapet_eden_paired=data.frame(read.table(paste0("data/", experiment, "/ref_bins_paired_profile_bins.xls"), header = T))
 norm_chiapet_eden_paired=MAnorm2::normalize(norm_inp_chiapet_eden_paired, 4:6, 7:9)
 unique40_chiapet_paired=norm_inp_chiapet_eden_paired[which(norm_inp_chiapet_eden_paired$GM19240.occupancy==1),]
 unique40_chiapet_paired[sort(unique40_chiapet_paired$GM19240.read_cnt, index.return=T)$ix,]
 
 
-norm_inp_chiapet_eden_single=data.frame(read.table(paste0(abs_path, "/", experiment, "/ref_bins_single_profile_bins.xls"), header = T))
+norm_inp_chiapet_eden_single=data.frame(read.table(paste0("data/", experiment, "/ref_bins_single_profile_bins.xls"), header = T))
 norm_chiapet_eden_single=MAnorm2::normalize(norm_inp_chiapet_eden_single, 4:6, 7:9)
 #sort by the lowest value of GM19238.read_cnt
 norm_chiapet_eden_single[sort(norm_chiapet_eden_single$GM19238.read_cnt, index.return=T)$ix,]
@@ -737,7 +736,7 @@ constant_chiapet[sort(constant_chiapet$GM19240.read_cnt, index.return=T)$ix,]
 
 ### with dedup chiapet
 
-norm_inp_chiapet_eden_single_simple=data.frame(read.table(paste0(abs_path, "/", experiment, "/chiapet_single_simple_profile_bins.xls"), header = T))
+norm_inp_chiapet_eden_single_simple=data.frame(read.table(paste0("data/", experiment, "/chiapet_single_simple_profile_bins.xls"), header = T))
 norm_chiapet_eden_single_simple=MAnorm2::normalize(norm_inp_chiapet_eden_single_simple, 4:6, 7:9)
 #sort by the lowest value of GM19238.read_cnt
 norm_chiapet_eden_single_simple[sort(norm_chiapet_eden_single_simple$GM19238.read_cnt, index.return=T)$ix,]
@@ -873,7 +872,7 @@ plot(res,  padj = 1e-6, main="GM19238 vs GM19239 vs GM19240")
 # [HiChIP 2 rep] MANorm data processing
 ```{r}
 experiment="hichip"
-norm_inp_hichip_2rep=data.frame(read.table(paste0(abs_path, "/", experiment, "/hichip_2rep_mrg_bins_profile_bins.xls"), header = T))
+norm_inp_hichip_2rep=data.frame(read.table(paste0("data/", experiment, "/hichip_2rep_mrg_bins_profile_bins.xls"), header = T))
 cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
 trios=c("GM19238", "GM19239", "GM19240")
 
@@ -1118,7 +1117,7 @@ pos_false_tables_hichip_5kb$GM38_GM39_mean_lw10$GM38T_GM38T[pos_false_tables_hic
 ```{r}
 experiment="hichip"
 trios=c("GM19238", "GM19239", "GM19240")
-norm_inp_hichip=data.frame(read.table(paste0(abs_path, "/", experiment, "/hichip_merged_profile_bins.xls"), header = T))
+norm_inp_hichip=data.frame(read.table(paste0("data/", experiment, "/hichip_merged_profile_bins.xls"), header = T))
 
 ### Visualize the plots before/after normalization (Generating new plots and data (log2))
 raw_hichip = log(norm_inp_hichip[4:6] + 0.5, base = 2)
@@ -1414,7 +1413,7 @@ experiment="chiapet"
 cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
 trios=c("GM19238", "GM19239", "GM19240")
 
-norm_inp_chiapet_2rep=data.frame(read.table(paste0(abs_path, "/", experiment, "/chiapet_2rep_mrg_bins_profile_bins.xls"), header = T))
+norm_inp_chiapet_2rep=data.frame(read.table(paste0("data/", experiment, "/chiapet_2rep_mrg_bins_profile_bins.xls"), header = T))
 
 ### Normalize between groups
 norm_chiapet_2rep <- MAnorm2::normalize(norm_inp_chiapet_2rep, count = 4:5, occupancy = 10:11)
@@ -1602,7 +1601,7 @@ experiment="ChIA-PET"
 # trios names are being used to name the components in the list
 trios=c("GM19238", "GM19239", "GM19240")
 # read the input file for MANorm (generated from MANorm_utils)
-norm_inp_chiapet=data.frame(read.table(paste0(abs_path, "/chiapet/chiapet_merged_profile_bins.xls"), header = T))
+norm_inp_chiapet=data.frame(read.table(paste0("data/chiapet/chiapet_merged_profile_bins.xls"), header = T))
 
 # See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by MANorms
 table_chiapet_occupancy_raw=list(

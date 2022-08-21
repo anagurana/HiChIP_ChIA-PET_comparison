@@ -24,7 +24,7 @@ suppressMessages(library(MAnorm2))
 
 
 get_peaks_path <- function(exp_type, cell_line){
-  dir_path=file.path(abs_path, exp_type, cell_line)
+  dir_path=file.path("data", exp_type, cell_line)
   peaks_file_path=list.files(dir_path, pattern='.broadPeak', 
                         recursive=FALSE, full.names = TRUE)
   return(peaks_file_path)
@@ -32,7 +32,7 @@ get_peaks_path <- function(exp_type, cell_line){
 
 
 read_bam_file <- function(exp_type, cell_line){
-  dir_path=file.path(abs_path, exp_type, cell_line)
+  dir_path=file.path("data", exp_type, cell_line)
   bam_file_path=list.files(dir_path, pattern='.for.BROWSER.bam', 
                       recursive=FALSE, full.names = TRUE)[1]
   return(bam_file_path)
