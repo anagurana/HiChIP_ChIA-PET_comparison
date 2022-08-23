@@ -11,6 +11,7 @@ suppressMessages(library(gridExtra))
 suppressMessages(library(Rsubread))
 suppressMessages(library(ggplot2))
 suppressMessages(library(dplyr))
+suppressMessages(library(magrittr))
 suppressMessages(library(hrbrthemes))
 suppressMessages(library(ggridges))
 suppressMessages(library(data.table))
@@ -390,7 +391,7 @@ create_short_name_for_col=function(trios){
 color=function(word){
   if (word == "GM19238") {color="deeppink"}
   else if (word == "GM19239") {color="deepskyblue"}
-  else if (word == "GM19240") {color="yellow"}
+  else if (word == "GM19240") {color="orange"}
   else if (word == "chiapet") {color="blue"}
   else if (word == "hichip") {color="lawngreen"}
   else if (word == "chipseq") {color="red"}

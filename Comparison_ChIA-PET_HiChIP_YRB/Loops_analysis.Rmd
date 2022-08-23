@@ -1,0 +1,118 @@
+---
+title: "Loops_analysis"
+---
+
+[ChIA-PET single replicates] Upload the loops 
+
+```{r}
+experiment="chiapet"
+cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
+trios=c("GM19238", "GM19239", "GM19240")
+
+# Read loops files - all
+loops_chiapet_all=vector(mode="list", length=NROW(cell_lines))
+names(loops_chiapet_all)=cell_lines
+for (cell_line in cell_lines){
+  loops_chiapet_all[[cell_line]]=read.table(
+    list.files(paste0("data/chiapet/", cell_line), pattern='.e500.clusters.cis.BE3', recursive=FALSE, full.names = TRUE))
+  colnames(loops_chiapet_all[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
+}
+
+# Read loops files - all
+loops_chiapet_2_anchors=vector(mode="list", length=NROW(cell_lines))
+names(loops_chiapet_2_anchors)=cell_lines
+for (cell_line in cell_lines){
+  loops_chiapet_2_anchors[[cell_line]]=read.table(
+    list.files(paste0("data/chiapet/", cell_line), pattern='.e500.clusters.cis.BE3.peak_annot.E2', recursive=FALSE, full.names = TRUE))
+  colnames(loops_chiapet_2_anchors[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
+}
+```
+
+
+# [ChIA-PET single replicates] Compare the all loops quantity
+
+```{r}
+
+# Generate the comulative distribution plot
+
+png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_all_loops_single_replicates.png'), res = 300, width = 1500, height = 1500)
+
+plot.new()
+i=n=1
+for (cell_line in cell_lines){
+  ecdf_plot=plot(ecdf(loops_chiapet_all[[cell_line]]$pets_count),
+     cex=0.5,
+     # xlim=c(3,max(loops_chiapet_all[[cell_line]]$pets_count)),
+     xlim=c(3,50),
+     col=color(trios[i]),
+     ylim=c(0.2,1), add=ifelse(n==1, FALSE, TRUE),
+     xlab="PETs count",
+     ylab="Cumulative percent",
+     # pch=19)
+     pch=ifelse(!is.na(str_extract(cell_line, "rep1")),0, 19),
+     main="")
+  n=n+1
+  if(n==3 | n==5){i=i+1}}
+legend("bottomright", 
+       title="Cell Line",
+       legend=cell_lines,
+       pch=c(0,19,0,19,0,19),
+       col=c(color(trios[1]), color(trios[1]), color(trios[2]), color(trios[2]), color(trios[3]), color(trios[3])))
+dev.off()
+
+# See the cumulative numbers
+ecdf(loops_chiapet_all[[cell_line]]$pets_count)(sort(loops_chiapet_all[[cell_line]]$pets_count))
+
+# Calculate the average PETs number of 99% of replicates and mean in the sample
+chiapet_cum_percent_loops=vector(mode="list", length=NROW(loops_chiapet_all))
+names(chiapet_cum_percent_loops)=cell_lines
+for (cell_line in cell_lines){
+  chiapet_cum_percent_loops[[cell_line]]=
+    c(quantile(loops_chiapet_all[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
+  mean(loops_chiapet_all[[cell_line]]$pets_count))
+  names(chiapet_cum_percent_loops[[cell_line]])[3]="mean"
+}
+
+```
+
+# [ChIA-PET single replicates] Compare the loops with 2 anchors quantity
+
+```{r}
+# Generate the comulative distribution plot
+
+png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_2_anchors_single_replicates.png'), res = 300, width = 1500, height = 1500)
+
+plot.new()
+i=n=1
+for (cell_line in cell_lines){
+  ecdf_plot=plot(ecdf(loops_chiapet_2_anchors[[cell_line]]$pets_count),
+     cex=0.5,
+     # xlim=c(3,max(loops_chiapet_2_anchors[[cell_line]]$pets_count)),
+     xlim=c(3,50),
+     col=color(trios[i]),
+     ylim=c(0.2,1), add=ifelse(n==1, FALSE, TRUE),
+     xlab="PETs count",
+     ylab="Cumulative percent",
+     # pch=19)
+     pch=ifelse(!is.na(str_extract(cell_line, "rep1")),0, 19),
+     main="",)
+  n=n+1
+  if(n==3 | n==5){i=i+1}}
+legend("bottomright", 
+       title="Cell Line",
+       legend=cell_lines,
+       pch=c(0,19,0,19,0,19),
+       col=c(color(trios[1]), color(trios[1]), color(trios[2]), color(trios[2]), color(trios[3]), color(trios[3])))
+dev.off()
+
+# Calculate the average PETs number of 99% of replicates and mean in the sample
+chiapet_cum_percent_2anch_loops=vector(mode="list", length=NROW(loops_chiapet_all))
+names(chiapet_cum_percent_2anch_loops)=cell_lines
+for (cell_line in cell_lines){
+  chiapet_cum_percent_2anch_loops[[cell_line]]=
+    c(quantile(loops_chiapet_2_anchors[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
+  mean(loops_chiapet_2_anchors[[cell_line]]$pets_count))
+  names(chiapet_cum_percent_2anch_loops[[cell_line]])[3]="mean"
+}
+```
+
