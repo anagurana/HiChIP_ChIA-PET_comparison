@@ -1,57 +1,59 @@
 ---
+title: "Loops_analysis_merged_replicates"
+---
+
+---
 title: "Loops_analysis_single_replicates"
 ---
 
-[ChIA-PET single replicates] Upload the loops 
+[ChIA-PET merged replicates] Upload the loops 
 
 ```{r}
 experiment="chiapet"
-cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
 trios=c("GM19238", "GM19239", "GM19240")
 
 # Read loops files - all
-loops_single_chiapet_all=vector(mode="list", length=NROW(cell_lines))
-names(loops_single_chiapet_all)=cell_lines
-for (cell_line in cell_lines){
-  loops_single_chiapet_all[[cell_line]]=read.table(
+loops_chiapet_all=vector(mode="list", length=NROW(trios))
+names(loops_chiapet_all)=trios
+for (cell_line in trios){
+  loops_chiapet_all[[cell_line]]=read.table(
     list.files(paste0("data/", experiment, "/", cell_line), pattern='\\.e500.clusters.cis.BE3$', recursive=FALSE, full.names = TRUE))
-  colnames(loops_single_chiapet_all[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
+  colnames(loops_chiapet_all[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
 }
 
 # Read loops files - all
-loops_single_chiapet_2_anchors=vector(mode="list", length=NROW(cell_lines))
-names(loops_single_chiapet_2_anchors)=cell_lines
-for (cell_line in cell_lines){
-  loops_single_chiapet_2_anchors[[cell_line]]=read.table(
-    list.files(paste0("data/", experiment, "/", cell_line), pattern='.e500.clusters.cis.BE3.peak_annot.E2', recursive=FALSE, full.names = TRUE))
-  colnames(loops_single_chiapet_2_anchors[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
+loops_chiapet_2_anchors=vector(mode="list", length=NROW(trios))
+names(loops_chiapet_2_anchors)=trios
+for (cell_line in trios){
+  loops_chiapet_2_anchors[[cell_line]]=read.table(
+    list.files(paste0("data/", experiment, "/", cell_line), pattern='.e500.clusters.cis.BE3.peak_annot.E2$', recursive=FALSE, full.names = TRUE))
+  colnames(loops_chiapet_2_anchors[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
 }
 ```
 
 
-[HiChIP single replicates] Upload the loops 
+[HiChIP merged replicates] Upload the loops 
 
 ```{r}
 experiment="hichip"
-cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
 trios=c("GM19238", "GM19239", "GM19240")
 
 # Read loops files - all
-loops_single_hichip_all=vector(mode="list", length=NROW(cell_lines))
-names(loops_single_hichip_all)=cell_lines
-for (cell_line in cell_lines){
-  loops_single_hichip_all[[cell_line]]=read.table(
+loops_hichip_all=vector(mode="list", length=NROW(trios))
+names(loops_hichip_all)=trios
+for (cell_line in trios){
+  loops_hichip_all[[cell_line]]=read.table(
     list.files(paste0("data/", experiment, "/", cell_line), pattern='\\.e500.clusters.cis.BE3$', recursive=FALSE, full.names = TRUE))
-  colnames(loops_single_hichip_all[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
+  colnames(loops_hichip_all[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
 }
 
 # Read loops files - all
-loops_single_hichip_2_anchors=vector(mode="list", length=NROW(cell_lines))
-names(loops_single_hichip_2_anchors)=cell_lines
-for (cell_line in cell_lines){
-  loops_single_hichip_2_anchors[[cell_line]]=read.table(
-    list.files(paste0("data/", experiment, "/", cell_line), pattern='.e500.clusters.cis.BE3.peak_annot.E2', recursive=FALSE, full.names = TRUE))
-  colnames(loops_single_hichip_2_anchors[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
+loops_hichip_2_anchors=vector(mode="list", length=NROW(trios))
+names(loops_hichip_2_anchors)=trios
+for (cell_line in trios){
+  loops_hichip_2_anchors[[cell_line]]=read.table(
+    list.files(paste0("data/", experiment, "/", cell_line), pattern='.e500.clusters.cis.BE3.peak_annot.E2$', recursive=FALSE, full.names = TRUE))
+  colnames(loops_hichip_2_anchors[[cell_line]])=c("anch_1","start_1","end_1","anch_2","start_2","end_2","pets_count")
 }
 ```
 
@@ -236,5 +238,4 @@ for (cell_line in cell_lines){
   names(hichip_cum_percent_2anch_loops_single[[cell_line]])[3]="mean"
 }
 ```
-
 

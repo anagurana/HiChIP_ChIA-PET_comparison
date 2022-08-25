@@ -34,8 +34,8 @@ get_peaks_path <- function(exp_type, cell_line){
 
 read_bam_file <- function(exp_type, cell_line){
   dir_path=file.path("data", exp_type, cell_line)
-  bam_file_path=list.files(dir_path, pattern='.for.BROWSER.bam', 
-                      recursive=FALSE, full.names = TRUE)[1]
+  bam_file_path=list.files(dir_path, pattern='\\.for.BROWSER.bam$', 
+                      recursive=FALSE, full.names = TRUE)
   return(bam_file_path)
 }
 
