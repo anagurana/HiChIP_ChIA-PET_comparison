@@ -58,26 +58,6 @@ read_peaks=function(peaks_path){
   return(peaks.gr)
 }
 
-find_main_overlaps_between_3=function(peaks1, peaks2, peaks3){
-  nrow_1=NROW(peaks1)
-  nrow_2=NROW(peaks2)
-  nrow_3=NROW(peaks3)
-  
-  if (nrow_1<nrow_2){common_12=subsetByOverlaps(peaks1, peaks2)} 
-  else {common_12=subsetByOverlaps(peaks2, peaks1)}
-  if (nrow_2<nrow_3){common_23=subsetByOverlaps(peaks2, peaks3)}
-  else {common_23=subsetByOverlaps(peaks3, peaks2)}
-  if (nrow_1<nrow_3){common_13=subsetByOverlaps(peaks1, peaks3)}
-  else {common_13=subsetByOverlaps(peaks3, peaks1)}
-  
-  if (nrow_3>nrow_1 & nrow_3>nrow_2){common_peaks=subsetByOverlaps(common_12, peaks3)}
-  else if (nrow_2>nrow_1 & nrow_2>nrow_3){common_peaks=subsetByOverlaps(common_13, peaks2)}
-  else if (nrow_1>nrow_2 & nrow_1>nrow_3){common_peaks=subsetByOverlaps(common_23, peaks1)}
-  
-  common_overlaps=GRangesList("com12"=common_12,"com23"=common_23, "com13" = common_13, "com123"= common_peaks)
-  return(common_overlaps)
-}
-
 find_all_relative_overlaps=function(peaks1, peaks2, peaks3, relative_experiment){
   common_overlaps=find_main_overlaps(peaks1, peaks2, peaks3)
   
@@ -160,6 +140,8 @@ find_all_relative_overlaps=function(peaks1, peaks2, peaks3, relative_experiment)
     return(GRangesList(vs_all=overlapIDs.123, vs_ChIAPET=overlapIDs.7, vs_HiChIP=overlapIDs.9, raw=overlapIDs.raw.3))
   }
 }
+
+# Function that looks for all overlaps in technology, in final peaks are not overlaping with each other. 
 
 find_true_all_relative_overlaps=function(peaks1, peaks2, peaks3, rel_param){
   
@@ -457,7 +439,25 @@ prop_name=function(technology){
   return(name)
 }
 
-draw_2_venn_diagram=function(area1, area2, cross.area, region=12){
+draw_2_venn_diagram=function(common_peaks, region=12){
+  peaks_quantity=elementNROWS(common_peaks)
+  
+  if (region==12) {
+    cross.area=peaks_quantity[[2]]+peaks_quantity[["constant_peaks"]]
+    area1=cross.area+peaks_quantity[[3]]+peaks_quantity[[5]]
+    area2=cross.area+peaks_quantity[[4]]+peaks_quantity[[6]]
+  }
+  else if (region==13){
+    cross.area=peaks_quantity[3]+peaks_quantity[["constant_peaks"]]
+    area1=cross.area+peaks_quantity[2]+peaks_quantity[5]
+    area2=cross.area+peaks_quantity[4]+peaks_quantity[7]
+  }
+  else if (region==23){
+    cross.area=peaks_quantity[4]+peaks_quantity[["constant_peaks"]]
+    area1=cross.area+peaks_quantity[2]+peaks_quantity[6]
+    area2=cross.area+peaks_quantity[3]+peaks_quantity[7]
+  }
+  
   if (area1 < area2){
     rotation_degree=180
     cat_pos=c(60,300)
@@ -513,13 +513,19 @@ draw_2_venn_diagram=function(area1, area2, cross.area, region=12){
   }
 }
 
-draw_3_venn_diagram=function(area1, area2, area3, common_peaks){
+draw_3_venn_diagram=function(common_peaks){
   
-  #Define the required overlaps for Venn Diagram
-  n12=NROW(common_peaks$com12)
-  n23=NROW(common_peaks$com23)
-  n13=NROW(common_peaks$com13)
-  n123=NROW(common_peaks$com123)
+  # Define the required overlaps for Venn Diagram
+  peaks_quantity=elementNROWS(common_peaks)
+  n123=peaks_quantity[["constant_peaks"]]
+  n12=peaks_quantity[[2]]+n123
+  n13=peaks_quantity[[3]]+n123
+  n23=peaks_quantity[[4]]+n123
+  
+  # Calculate the peaks quantity from the overlaps
+  area1=n12+peaks_quantity[[3]]+peaks_quantity[[5]]
+  area2=n12+peaks_quantity[[4]]+peaks_quantity[[6]]
+  area3=n13+peaks_quantity[[4]]+peaks_quantity[[7]]
 
   #Draw plots
   if (experiment_1 == experiment_2 & experiment_1 == experiment_3){

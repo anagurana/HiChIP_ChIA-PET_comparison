@@ -65,42 +65,72 @@ experiment="chiapet"
 
 # Generate the comulative distribution plot
 
-png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_all_loops_single_replicates.png'), res = 300, width = 1500, height = 1500)
+png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_all_loops_merged_replicates.png'), res = 300, width = 1500, height = 1500)
 
 plot.new()
 i=n=1
-for (cell_line in cell_lines){
-  ecdf_plot=plot(ecdf(loops_single_chiapet_all[[cell_line]]$pets_count),
+for (cell_line in trios){
+  ecdf_plot=plot(ecdf(loops_chiapet_all[[cell_line]]$pets_count),
      cex=0.5,
-     # xlim=c(3,max(loops_single_chiapet_all[[cell_line]]$pets_count)),
+     # xlim=c(3,max(loops_chiapet_all[[cell_line]]$pets_count)),
      xlim=c(3,50),
-     col=color(trios[i]),
+     col=color(cell_line),
      ylim=c(0.2,1), add=ifelse(n==1, FALSE, TRUE),
      xlab="PETs count",
      ylab="Cumulative percent",
      # pch=19)
-     pch=ifelse(!is.na(str_extract(cell_line, "rep1")),0, 19),
+     pch=19,
      main="")
   n=n+1
   if(n==3 | n==5){i=i+1}}
 legend("bottomright", 
        title="Cell Line",
-       legend=cell_lines,
-       pch=c(0,19,0,19,0,19),
-       col=c(color(trios[1]), color(trios[1]), color(trios[2]), color(trios[2]), color(trios[3]), color(trios[3])))
+       legend=trios,
+       pch=c(19,19,19),
+       col=c(color(trios[1]), color(trios[2]), color(trios[3])))
 dev.off()
 
+# png(paste0('plots/loops/Comulative_distribution_plot_two_experiments_all_loops_merged_replicates.png'), res = 300, width = 1500, height = 1500)
+# 
+# experiments=c("chiapet", "hichip")
+# plot.new()
+# i=n=1
+# for (experiment in experiments){
+#   loops_tmp=ifelse (experiment=="chiapet", "loops_chiapet_all", "loops_hichip_all")
+# 
+#   for (cell_line in trios){
+#     ecdf_plot=plot(ecdf(get(loops_tmp)[[cell_line]]$pets_count),
+#        cex=0.5,
+#        # xlim=c(3,max(loops_tmp[[cell_line]]$pets_count)),
+#        xlim=c(3,50),
+#        col=color(cell_line),
+#        ylim=c(0.2,1), add=ifelse(n==1, FALSE, TRUE),
+#        xlab="PETs count",
+#        ylab="Cumulative percent",
+#        pch=ifelse(experiment=="chiapet",0, 19),
+#        main="")
+#     n=n+1
+#   }
+# }
+# legend("bottomright", 
+#        title="Cell Line",
+#        legend=c("GM19238_ChIA-PET", "GM19239_ChIA-PET", "GM19240_ChIA-PET", 
+#                 "GM19238_HiChIP", "GM19239_HiChIP", "GM19240_HiChIP"),
+#        pch=c(0,0,0,19,19,19),
+#        col=c(color(trios[1]), color(trios[2]), color(trios[3]), color(trios[1]), color(trios[2]), color(trios[3])))
+# dev.off()
+
 # See the cumulative numbers
-# ecdf(loops_single_chiapet_all[[cell_line]]$pets_count)(sort(loops_single_chiapet_all[[cell_line]]$pets_count))
+# ecdf(loops_chiapet_all[[cell_line]]$pets_count)(sort(loops_chiapet_all[[cell_line]]$pets_count))
 
 # Calculate the average PETs number of 99% of replicates and mean in the sample
-chiapet_cum_percent_loops_single=vector(mode="list", length=NROW(loops_single_chiapet_all))
-names(chiapet_cum_percent_loops_single)=cell_lines
-for (cell_line in cell_lines){
-  chiapet_cum_percent_loops_single[[cell_line]]=
-    c(quantile(loops_single_chiapet_all[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
-  mean(loops_single_chiapet_all[[cell_line]]$pets_count))
-  names(chiapet_cum_percent_loops_single[[cell_line]])[3]="mean"
+chiapet_cum_percent_loops=vector(mode="list", length=NROW(loops_chiapet_all))
+names(chiapet_cum_percent_loops)=trios
+for (cell_line in trios){
+  chiapet_cum_percent_loops[[cell_line]]=
+    c(quantile(loops_chiapet_all[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
+  mean(loops_chiapet_all[[cell_line]]$pets_count))
+  names(chiapet_cum_percent_loops[[cell_line]])[3]="mean"
 }
 
 ```
@@ -113,129 +143,129 @@ experiment="hichip"
 
 # Generate the comulative distribution plot
 
-png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_all_loops_single_replicates.png'), res = 300, width = 1500, height = 1500)
+png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_all_loops_merged_replicates.png'), res = 300, width = 1500, height = 1500)
 
 plot.new()
 i=n=1
-for (cell_line in cell_lines){
-  ecdf_plot=plot(ecdf(loops_single_hichip_all[[cell_line]]$pets_count),
+for (cell_line in trios){
+  ecdf_plot=plot(ecdf(loops_hichip_all[[cell_line]]$pets_count),
      cex=0.5,
-     # xlim=c(3,max(loops_single_hichip_all[[cell_line]]$pets_count)),
+     # xlim=c(3,max(loops_hichip_all[[cell_line]]$pets_count)),
      xlim=c(3,50),
-     col=color(trios[i]),
+     col=color(cell_line),
      ylim=c(0.2,1), add=ifelse(n==1, FALSE, TRUE),
      xlab="PETs count",
      ylab="Cumulative percent",
      # pch=19)
-     pch=ifelse(!is.na(str_extract(cell_line, "rep1")),0, 19),
+     pch=19,
      main="")
   n=n+1
   if(n==3 | n==5){i=i+1}}
 legend("bottomright", 
        title="Cell Line",
-       legend=cell_lines,
-       pch=c(0,19,0,19,0,19),
-       col=c(color(trios[1]), color(trios[1]), color(trios[2]), color(trios[2]), color(trios[3]), color(trios[3])))
+       legend=trios,
+       pch=c(19,19,19),
+       col=c(color(trios[1]), color(trios[2]), color(trios[3])))
 dev.off()
 
 # See the cumulative numbers
-# ecdf(loops_single_hichip_all[[cell_line]]$pets_count)(sort(loops_single_hichip_all[[cell_line]]$pets_count))
+# ecdf(loops_hichip_all[[cell_line]]$pets_count)(sort(loops_hichip_all[[cell_line]]$pets_count))
 
 # Calculate the average PETs number of 99% of replicates and mean in the sample
-hichip_cum_percent_loops_single=vector(mode="list", length=NROW(loops_single_hichip_all))
-names(hichip_cum_percent_loops_single)=cell_lines
-for (cell_line in cell_lines){
-  hichip_cum_percent_loops_single[[cell_line]]=
-    c(quantile(loops_single_hichip_all[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
-  mean(loops_single_hichip_all[[cell_line]]$pets_count))
-  names(hichip_cum_percent_loops_single[[cell_line]])[3]="mean"
+hichip_cum_percent_loops=vector(mode="list", length=NROW(loops_hichip_all))
+names(hichip_cum_percent_loops)=trios
+for (cell_line in trios){
+  hichip_cum_percent_loops[[cell_line]]=
+    c(quantile(loops_hichip_all[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
+  mean(loops_hichip_all[[cell_line]]$pets_count))
+  names(hichip_cum_percent_loops[[cell_line]])[3]="mean"
 }
 
 ```
 
-# [ChIA-PET single replicates] Compare the loops with 2 anchors quantity
+# [ChIA-PET merged replicates] Compare the loops with 2 anchors quantity
 
 ```{r}
 experiment="chiapet"
 
 # Generate the comulative distribution plot
 
-png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_2_anchors_single_replicates.png'), res = 300, width = 1500, height = 1500)
+png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_2_anchors_merged_replicates.png'), res = 300, width = 1500, height = 1500)
 
 plot.new()
 i=n=1
-for (cell_line in cell_lines){
-  ecdf_plot=plot(ecdf(loops_single_chiapet_2_anchors[[cell_line]]$pets_count),
+for (cell_line in trios){
+  ecdf_plot=plot(ecdf(loops_chiapet_2_anchors[[cell_line]]$pets_count),
      cex=0.5,
-     # xlim=c(3,max(loops_single_chiapet_2_anchors[[cell_line]]$pets_count)),
+     # xlim=c(3,max(loops_chiapet_2_anchors[[cell_line]]$pets_count)),
      xlim=c(3,50),
-     col=color(trios[i]),
+     col=color(cell_line),
      ylim=c(0.2,1), add=ifelse(n==1, FALSE, TRUE),
      xlab="PETs count",
      ylab="Cumulative percent",
      # pch=19)
-     pch=ifelse(!is.na(str_extract(cell_line, "rep1")),0, 19),
-     main="",)
+     pch=19,
+     main="")
   n=n+1
   if(n==3 | n==5){i=i+1}}
 legend("bottomright", 
        title="Cell Line",
-       legend=cell_lines,
-       pch=c(0,19,0,19,0,19),
-       col=c(color(trios[1]), color(trios[1]), color(trios[2]), color(trios[2]), color(trios[3]), color(trios[3])))
+       legend=trios,
+       pch=c(19,19,19),
+       col=c(color(trios[1]), color(trios[2]), color(trios[3])))
 dev.off()
 
 # Calculate the average PETs number of 99% of replicates and mean in the sample
-chiapet_cum_percent_2anch_loops_single=vector(mode="list", length=NROW(loops_single_chiapet_2_anchors))
-names(chiapet_cum_percent_2anch_loops_single)=cell_lines
-for (cell_line in cell_lines){
-  chiapet_cum_percent_2anch_loops_single[[cell_line]]=
-    c(quantile(loops_single_chiapet_2_anchors[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
-  mean(loops_single_chiapet_2_anchors[[cell_line]]$pets_count))
-  names(chiapet_cum_percent_2anch_loops_single[[cell_line]])[3]="mean"
+chiapet_cum_percent_2anch_loops=vector(mode="list", length=NROW(loops_chiapet_2_anchors))
+names(chiapet_cum_percent_2anch_loops)=trios
+for (cell_line in trios){
+  chiapet_cum_percent_2anch_loops[[cell_line]]=
+    c(quantile(loops_chiapet_2_anchors[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
+  mean(loops_chiapet_2_anchors[[cell_line]]$pets_count))
+  names(chiapet_cum_percent_2anch_loops[[cell_line]])[3]="mean"
 }
 ```
 
-# [HiChIP single replicates] Compare the loops with 2 anchors quantity
+# [HiChIP merged replicates] Compare the loops with 2 anchors quantity
 
 ```{r}
 experiment="hichip"
 
 # Generate the comulative distribution plot
 
-png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_2_anchors_single_replicates.png'), res = 300, width = 1500, height = 1500)
+png(paste0('plots/loops/Comulative_distribution_plot_', experiment, '_2_anchors_merged_replicates.png'), res = 300, width = 1500, height = 1500)
 
 plot.new()
 i=n=1
-for (cell_line in cell_lines){
-  ecdf_plot=plot(ecdf(loops_single_hichip_2_anchors[[cell_line]]$pets_count),
+for (cell_line in trios){
+  ecdf_plot=plot(ecdf(loops_hichip_2_anchors[[cell_line]]$pets_count),
      cex=0.5,
-     # xlim=c(3,max(loops_single_hichip_2_anchors[[cell_line]]$pets_count)),
+     # xlim=c(3,max(loops_hichip_all[[cell_line]]$pets_count)),
      xlim=c(3,50),
-     col=color(trios[i]),
+     col=color(cell_line),
      ylim=c(0.2,1), add=ifelse(n==1, FALSE, TRUE),
      xlab="PETs count",
      ylab="Cumulative percent",
      # pch=19)
-     pch=ifelse(!is.na(str_extract(cell_line, "rep1")),0, 19),
-     main="",)
+     pch=19,
+     main="")
   n=n+1
   if(n==3 | n==5){i=i+1}}
 legend("bottomright", 
        title="Cell Line",
-       legend=cell_lines,
-       pch=c(0,19,0,19,0,19),
-       col=c(color(trios[1]), color(trios[1]), color(trios[2]), color(trios[2]), color(trios[3]), color(trios[3])))
+       legend=trios,
+       pch=c(19,19,19),
+       col=c(color(trios[1]), color(trios[2]), color(trios[3])))
 dev.off()
 
 # Calculate the average PETs number of 99% of replicates and mean in the sample
-hichip_cum_percent_2anch_loops_single=vector(mode="list", length=NROW(loops_single_hichip_2_anchors))
-names(hichip_cum_percent_2anch_loops_single)=cell_lines
-for (cell_line in cell_lines){
-  hichip_cum_percent_2anch_loops_single[[cell_line]]=
-    c(quantile(loops_single_hichip_2_anchors[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
-  mean(loops_single_hichip_2_anchors[[cell_line]]$pets_count))
-  names(hichip_cum_percent_2anch_loops_single[[cell_line]])[3]="mean"
+hichip_cum_percent_2anch_loops=vector(mode="list", length=NROW(loops_hichip_2_anchors))
+names(hichip_cum_percent_2anch_loops)=trios
+for (cell_line in trios){
+  hichip_cum_percent_2anch_loops[[cell_line]]=
+    c(quantile(loops_hichip_2_anchors[[cell_line]]$pets_count, probs=seq(0,1,0.99)),
+  mean(loops_hichip_2_anchors[[cell_line]]$pets_count))
+  names(hichip_cum_percent_2anch_loops[[cell_line]])[3]="mean"
 }
 ```
 

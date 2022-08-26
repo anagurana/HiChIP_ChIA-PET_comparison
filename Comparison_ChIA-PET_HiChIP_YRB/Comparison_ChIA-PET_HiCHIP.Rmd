@@ -9,8 +9,8 @@ All the important functions could be found in functions....R script
 
 # Specify the path where the replicates are being places
 "
-Script is assuming that there are 3 folders inside of the abs_path directory: ChIA-PET, HiChIP and ChiP-Seq
-Inside of each directory there is a folder, that contain the run names
+Script is assuming that there are 3 folders inside of the project directory: "chiapet", "hichip" and "chipseq"
+Inside of each directory there is a folder, that contain the run names, ec. GM19238, GM19238_rep1 
 "
 
 ```{r}
@@ -28,7 +28,7 @@ CTCF.hg38 = CTCF.hg38[CTCF.hg38$score >0]
 ```
 # [Merged replicates] Upload of the peaks data
 ```{r}
-cell_lines=c("GM19238", "GM19239", "GM19240")
+trios=c("GM19238", "GM19239", "GM19240")
 
 experiment_1<<-"chiapet"
 experiment_2<<-"hichip"
@@ -47,7 +47,7 @@ peaks_wout_sex_chr_ChIPSeq=peaks_with_motif_ChIPSeq=peaks_reduced_with_motif_ChI
 
 #Create GRangesLists that will conclude all the trios data
 
-for (cell_line in cell_lines){
+for (cell_line in trios){
   
   peaks_raw_ChIAPET[[cell_line]]=read_peaks(get_peaks_path(experiment_1, cell_line))
   peaks_raw_HiChIP[[cell_line]]=read_peaks(get_peaks_path(experiment_2, cell_line))
@@ -73,167 +73,35 @@ for (cell_line in cell_lines){
 }
 
 ```
-# Upload peaks for single replicates 
-```{r}
-experiment<<-"chiapet"
-cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
 
-rep2_peaks_raw_ChIAPET=GRangesList("GM19238_rep1"=GRanges(), "GM19238_rep2"=GRanges(),
-                                  "GM19239_rep1"=GRanges(),"GM19239_rep2"=GRanges(),
-                                  "GM19240_rep1"=GRanges(),"GM19240_rep2"=GRanges())
-
-rep2_peaks_wout_sex_chr_ChIAPET=rep2_peaks_with_motif_ChIAPET=rep2_peaks_reduced_with_motif_ChIAPET=rep2_peaks_raw_ChIAPET
-
-#Create GRangesLists that will conclude all the trios data
-
-for (cell_line in cell_lines){
-  
-  rep2_peaks_raw_ChIAPET[[cell_line]]=read_peaks(get_peaks_path(experiment, cell_line))
-  
-  rep2_peaks_with_motif_ChIAPET[[cell_line]]=subsetByOverlaps(IRanges::reduce(rep2_peaks_raw_ChIAPET[[cell_line]]),
-                                                                              IRanges::reduce(CTCF.hg38))
-  
-  rep2_peaks_reduced_with_motif_ChIAPET[[cell_line]]=IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[cell_line]]+p_exp)
-  
-  rep2_peaks_wout_sex_chr_ChIAPET[[cell_line]]=subset(
-    rep2_peaks_with_motif_ChIAPET[[cell_line]],
-    !(rep2_peaks_with_motif_ChIAPET[[cell_line]]@seqnames %in% c('chrY', 'chrX', 'chrM')))
-}
-
-experiment<<-"hichip"
-cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
-
-rep2_peaks_raw_HiChIP=GRangesList("GM19238_rep1"=GRanges(), "GM19238_rep2"=GRanges(),
-                                  "GM19239_rep1"=GRanges(),"GM19239_rep2"=GRanges(),
-                                  "GM19240_rep1"=GRanges(),"GM19240_rep2"=GRanges())
-
-rep2_peaks_wout_sex_chr_HiChIP=rep2_peaks_with_motif_HiChIP=rep2_peaks_reduced_with_motif_HiChIP=rep2_peaks_raw_HiChIP
-
-#Create GRangesLists that will conclude all the trios data
-
-for (cell_line in cell_lines){
-  
-  rep2_peaks_raw_HiChIP[[cell_line]]=read_peaks(get_peaks_path(experiment, cell_line))
-  
-  rep2_peaks_with_motif_HiChIP[[cell_line]]=rep2_peaks_raw_HiChIP[[cell_line]][unique(queryHits(findOverlaps(IRanges::reduce(rep2_peaks_raw_HiChIP[[cell_line]]), IRanges::reduce(CTCF.hg38))))]
-  
-  rep2_peaks_reduced_with_motif_HiChIP[[cell_line]]=IRanges::reduce(rep2_peaks_with_motif_HiChIP[[cell_line]]+p_exp)
-  
-  rep2_peaks_wout_sex_chr_HiChIP[[cell_line]]=subset(
-    rep2_peaks_with_motif_HiChIP[[cell_line]],
-    !(rep2_peaks_with_motif_HiChIP[[cell_line]]@seqnames %in% c('chrY', 'chrX', 'chrM')))
-}
- 
-```
-
-# [ChIA-PET single replicates] Comparison between the replicates (raw and peaks with motif)
-
-```{r}
-experiment<<-"chiapet"
-cell_lines=c("GM19238", "GM19239", "GM19240")
-
-experiment_2<<-experiment_1<<-experiment
-for (cell_line in cell_lines){
-  # Specify the runs' name
-  run_1<<-paste0(cell_line, "_rep1")
-  run_2<<-paste0(cell_line, "_rep2")
-  
-  # Draw the plots
-  png(paste0('plots/venn_diagrams/Common_raw_peaks_ChIA-PET_', cell_line, '_replicates.png'), res = 300, width = 2400, height = 2400)
-  plot.new()
-  draw_2_venn_diagram(NROW(IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_1]])), 
-                      NROW(IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_2]])), 
-                      NROW(subsetByOverlaps(IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_1]]), 
-                                            IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_2]]))))
-  dev.off()
-}
-
-
-experiment_2<<-experiment_1<<-experiment
-for (cell_line in cell_lines){
-  # Specify the runs' name
-  run_1<<-paste0(cell_line, "_rep1")
-  run_2<<-paste0(cell_line, "_rep2")
-  
-  # Draw the plots
-  png(paste0('plots/venn_diagrams/Common_peaks_with_motif_ChIA-PET_', cell_line, '_replicates.png'), res = 300, width = 2400, height = 2400)
-  plot.new()
-  draw_2_venn_diagram(NROW(IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_1]])), 
-                      NROW(IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_2]])), 
-                      NROW(subsetByOverlaps(IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_1]]), 
-                                            IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_2]]))))
-  dev.off()
-}
-```
-
-# [HiChIP single replicates] Comparison between the replicates
-
-```{r}
-experiment<<-"hichip"
-cell_lines=c("GM19238", "GM19239", "GM19240")
-common_peaks_HiChIP_replicates_raw=common_peaks_HiChIP_replicates_motif=
-  GRangesList("GM19238"=GRanges(), "GM19239"=GRanges(), "GM19240"=GRanges())
-
-experiment_2<<-experiment_1<<-experiment
-
-for (cell_line in cell_lines){
-  # Specify the runs' name
-  run_1<<-paste0(cell_line, "_rep1")
-  run_2<<-paste0(cell_line, "_rep2")
-
-  if (NROW(rep2_peaks_raw_HiChIP[[run_1]]) > NROW(rep2_peaks_raw_HiChIP[[run_2]])){
-    common_peaks_HiChIP_replicates_raw[[cell_line]] <- subsetByOverlaps(IRanges::reduce(rep2_peaks_raw_HiChIP[[run_2]]), 
-                                                                    IRanges::reduce(rep2_peaks_raw_HiChIP[[run_1]]))
-  } else{
-  common_peaks_HiChIP_replicates_raw[[cell_line]] <- subsetByOverlaps(IRanges::reduce(rep2_peaks_raw_HiChIP[[run_1]]), 
-                                                                  IRanges::reduce(rep2_peaks_raw_HiChIP[[run_2]]))
-  }
-  # Draw the plots
-  png(paste0('plots/venn_diagrams/Common_raw_peaks_HiChIP_', cell_line, '_replicates.png'), res = 300, width = 2400, height = 2400)
-  plot.new()
-  draw_2_venn_diagram(NROW(IRanges::reduce(rep2_peaks_raw_HiChIP[[run_1]])), 
-                      NROW(IRanges::reduce(rep2_peaks_raw_HiChIP[[run_2]])), 
-                      NROW(common_peaks_HiChIP_replicates_raw[[cell_line]]))
-  dev.off()
-}
-
-for (cell_line in cell_lines){
-  # Specify the runs' name
-  run_1<<-paste0(cell_line, "_rep1")
-  run_2<<-paste0(cell_line, "_rep2")
-
-  if (NROW(rep2_peaks_raw_HiChIP[[run_1]]) > NROW(rep2_peaks_raw_HiChIP[[run_2]])){
-    common_peaks_HiChIP_replicates_motif[[cell_line]] <- subsetByOverlaps(IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_2]]), 
-                                                                    IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_1]]))
-  } else{
-  common_peaks_HiChIP_replicates_motif[[cell_line]] <- subsetByOverlaps(IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_1]]), 
-                                                                  IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_2]]))
-  }
-  # Draw the plots
-  png(paste0('plots/venn_diagrams/Common_peaks_with_motif_HiChIP_', cell_line, '_replicates.png'), res = 300, width = 2400, height = 2400)
-  plot.new()
-  draw_2_venn_diagram(NROW(IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_1]])), 
-                      NROW(IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_2]])), 
-                      NROW(common_peaks_HiChIP_replicates_motif[[cell_line]]))
-  dev.off()
-}
-
-```
-
-# Comparison between the technologies on the same cell line (x3)
-# ec. GM19238 --> ChIAPET, HiChIP and ChIPSeq
+# Comparison between the technologies on the same cell line (x3) (ec. GM19238 --> ChIAPET, HiChIP and ChIPSeq)
 
 ```{r}
 
-cell_lines=c("GM19238", "GM19239", "GM19240")
+trios=c("GM19238", "GM19239", "GM19240")
 
 experiment_1<<-"chiapet"
 experiment_2<<-"hichip"
 experiment_3<<-"chipseq"
 
-for (cell_line in cell_lines){
+common_peaks_per_cell_line=GRangesList(GRanges(), GRanges(), GRanges())
+names(common_peaks_per_cell_line)=trios
+
+for (cell_line in trios){
   
-  cell_line_1<<-cell_line_2<<-cell_line_3<<-cell_line
+  common_peaks=find_true_all_relative_overlaps(peaks_with_motif_ChIAPET[[cell_line]], 
+                                               peaks_with_motif_HiChIP[[cell_line]], 
+                                               peaks_with_motif_ChIPSeq[[cell_line]],
+                                               "experiments")
+  assign(paste0(cell_line, "_common_peaks_3_tech"), common_peaks)
+  
+  # Draw and save the plots
+  png(paste0('plots/venn_diagrams/Common_peaks_between_technologies_', cell_line, '.png'), res = 300, width = 4200, height = 4200)
+  plot.new()
+  draw_3_venn_diagram(common_peaks)
+  dev.off()
+
+for (cell_line in trios){
   
   common_peaks=find_main_overlaps_between_3(peaks_raw_ChIAPET[[cell_line]], 
                                             peaks_raw_HiChIP[[cell_line]], 
@@ -242,7 +110,7 @@ for (cell_line in cell_lines){
   
   
   # Draw and save the plots
-  png(paste0('Common_peaks_between_technologies_', cell_line, 
+  png(paste0('plots/venn_diagrams/Common_peaks_between_technologies_trial', cell_line, 
              '_pulled_exp_', p_exp, '.png'), 
       res = 300, width = 4200, height = 4200)
   plot.new()
@@ -254,21 +122,21 @@ for (cell_line in cell_lines){
   
   # Pairwise Venn diagrams
   
-  png(paste0('Common_peaks_between_',experiment_1,'_and_',experiment_2,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
+  png(paste0('plots/venn_diagrams/Common_peaks_between_trial_',experiment_1,'_and_',experiment_2,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
   plot.new()
   draw_2_venn_diagram(NROW(peaks_raw_ChIAPET[[cell_line]]), 
                       NROW(peaks_raw_HiChIP[[cell_line]]), 
                       NROW(common_peaks$com12), 12)
   dev.off()
   
-  png(paste0('Common_peaks_between_',experiment_1,'_and_',experiment_3,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
+  png(paste0('plots/venn_diagrams/Common_peaks_between_trial_',experiment_1,'_and_',experiment_3,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
   plot.new()
   draw_2_venn_diagram(NROW(peaks_raw_ChIAPET[[cell_line]]), 
                       NROW(peaks_raw_ChIPSeq[[cell_line]]), 
                       NROW(common_peaks$com13), 13)
   dev.off()
   
-  png(paste0('Common_peaks_between_',experiment_2,'_and_',experiment_3,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
+  png(paste0('plots/venn_diagrams/Common_peaks_between_trial_',experiment_2,'_and_',experiment_3,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
   plot.new()
   draw_2_venn_diagram(NROW(peaks_raw_HiChIP[[cell_line]]), 
                       NROW(peaks_raw_ChIPSeq[[cell_line]]), 
@@ -280,62 +148,51 @@ rm(common_peaks)
 
 ```
 
-# Peaks with CTCF motif, comparison inside of the cell line for every technology(x3)
-# # ec. GM19238 --> ChIAPET, HiChIP and ChIPSeq
+# Peaks comparison inside of the cell line for every technology(x3) (ec. GM19238 --> ChIAPET, HiChIP and ChIPSeq)
+
 ```{r}
-cell_lines=c("GM19238", "GM19239", "GM19240")
+trios=c("GM19238", "GM19239", "GM19240")
 
 experiment_1<<-"chiapet"
 experiment_2<<-"hichip"
 experiment_3<<-"chipseq"
 
-for (cell_line in cell_lines){
+for (cell_line in trios){
   
-  cell_line_1<<-cell_line_2<<-cell_line_3<<-cell_line
-  
-  common_peaks=find_main_overlaps_between_3(peaks_with_motif_ChIAPET[[cell_line]], 
-                                            peaks_with_motif_HiChIP[[cell_line]], 
-                                            peaks_with_motif_ChIPSeq[[cell_line]])
-  assign(paste0("common_peaks_with_motif_", cell_line, "_3_tech"), common_peaks)
+  common_peaks=find_true_all_relative_overlaps(peaks_with_motif_ChIAPET[[cell_line]], 
+                                               peaks_with_motif_HiChIP[[cell_line]], 
+                                               peaks_with_motif_ChIPSeq[[cell_line]],
+                                               "experiments")
+  assign(paste0(cell_line, "_common_peaks_3_tech"), common_peaks)
   
   # Draw and save the plots
-  png(paste0('Common_peaks_with_motif_between_technologies_', cell_line, '_pulled_exp_', p_exp, '.png'), res = 300, width = 4200, height = 4200)
+  png(paste0('plots/venn_diagrams/Common_peaks_between_technologies_', cell_line, '.png'), res = 300, width = 4200, height = 4200)
   plot.new()
-  draw_3_venn_diagram(NROW(peaks_with_motif_ChIAPET[[cell_line]]), 
-                      NROW(peaks_with_motif_HiChIP[[cell_line]]), 
-                      NROW(peaks_with_motif_ChIPSeq[[cell_line]]), 
-                      common_peaks)
+  draw_3_venn_diagram(common_peaks)
   dev.off()
   
   # Pairwise Venn diagrams
-  
-  png(paste0('Common_peaks_with_motif_between_',experiment_1,'_and_',experiment_2,'_',cell_line,'_pulled_exp_',p_exp,'.png'), 
+
+  png(paste0('plots/venn_diagrams/Common_peaks_between_',experiment_1,'_and_',experiment_2,'_',cell_line,'.png'),
       res = 300, width = 2400, height = 2400)
   plot.new()
-  draw_2_venn_diagram(NROW(peaks_with_motif_ChIAPET[[cell_line]]), 
-                      NROW(peaks_with_motif_HiChIP[[cell_line]]), 
-                      NROW(common_peaks$com12), 12)
+  draw_2_venn_diagram(common_peaks, 12)
   dev.off()
-  
-  png(paste0('Common_peaks_with_motif_between_',experiment_1,'_and_',experiment_3,'_',cell_line,'_pulled_exp_',p_exp,'.png'), 
+
+  png(paste0('plots/venn_diagrams/Common_peaks_between_',experiment_1,'_and_',experiment_3,'_',cell_line,'.png'),
       res = 300, width = 2400, height = 2400)
   plot.new()
-  draw_2_venn_diagram(NROW(peaks_with_motif_ChIAPET[[cell_line]]), 
-                      NROW(peaks_with_motif_ChIPSeq[[cell_line]]), 
-                      NROW(common_peaks$com13), 13)
+  draw_2_venn_diagram(common_peaks, 13)
   dev.off()
-  
-  png(paste0('Common_peaks_with_motif_between_',experiment_2,'_and_',experiment_3,'_',cell_line,'_pulled_exp_',p_exp,'.png'), 
+
+  png(paste0('plots/venn_diagrams/Common_peaks_between_',experiment_2,'_and_',experiment_3,'_',cell_line,'.png'),
       res = 300, width = 2400, height = 2400)
   plot.new()
-  draw_2_venn_diagram(NROW(peaks_with_motif_HiChIP[[cell_line]]), 
-                      NROW(peaks_with_motif_ChIPSeq[[cell_line]]), 
-                      NROW(common_peaks$com23), 23)
+  draw_2_venn_diagram(common_peaks, 23)
   dev.off()
 }
 
 rm(common_peaks)
-
 ```
 
 # Comparison between the trios on the same technology (x3)
