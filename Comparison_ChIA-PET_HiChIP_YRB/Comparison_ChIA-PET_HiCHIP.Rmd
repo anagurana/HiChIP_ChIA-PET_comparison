@@ -74,77 +74,66 @@ for (cell_line in trios){
 
 ```
 
-# Comparison between the technologies on the same cell line (x3) (ec. GM19238 --> ChIAPET, HiChIP and ChIPSeq)
+# Comparison of peaks between single and merged replicates
 
 ```{r}
 
-trios=c("GM19238", "GM19239", "GM19240")
-
-experiment_1<<-"chiapet"
-experiment_2<<-"hichip"
-experiment_3<<-"chipseq"
-
-common_peaks_per_cell_line=GRangesList(GRanges(), GRanges(), GRanges())
-names(common_peaks_per_cell_line)=trios
+# chiapet
 
 for (cell_line in trios){
-  
-  common_peaks=find_true_all_relative_overlaps(peaks_with_motif_ChIAPET[[cell_line]], 
-                                               peaks_with_motif_HiChIP[[cell_line]], 
-                                               peaks_with_motif_ChIPSeq[[cell_line]],
-                                               "experiments")
-  assign(paste0(cell_line, "_common_peaks_3_tech"), common_peaks)
-  
-  # Draw and save the plots
-  png(paste0('plots/venn_diagrams/Common_peaks_between_technologies_', cell_line, '.png'), res = 300, width = 4200, height = 4200)
+  png(paste0('plots/venn_diagrams/Common_raw_peaks_ChIA-PET_', cell_line, '_different_replicates.png'), res = 300, width = 2400, height = 2400)
   plot.new()
-  draw_3_venn_diagram(common_peaks)
-  dev.off()
-
-for (cell_line in trios){
-  
-  common_peaks=find_main_overlaps_between_3(peaks_raw_ChIAPET[[cell_line]], 
-                                            peaks_raw_HiChIP[[cell_line]], 
-                                            peaks_raw_ChIPSeq[[cell_line]])
-  assign(paste0("common_peaks_", cell_line, "_3_tech"), common_peaks)
-  
-  
-  # Draw and save the plots
-  png(paste0('plots/venn_diagrams/Common_peaks_between_technologies_trial', cell_line, 
-             '_pulled_exp_', p_exp, '.png'), 
-      res = 300, width = 4200, height = 4200)
-  plot.new()
-  draw_3_venn_diagram(NROW(peaks_raw_ChIAPET[[cell_line]]), 
-                      NROW(peaks_raw_HiChIP[[cell_line]]), 
-                      NROW(peaks_raw_ChIPSeq[[cell_line]]), 
-                      common_peaks)
-  dev.off()
-  
-  # Pairwise Venn diagrams
-  
-  png(paste0('plots/venn_diagrams/Common_peaks_between_trial_',experiment_1,'_and_',experiment_2,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
-  plot.new()
-  draw_2_venn_diagram(NROW(peaks_raw_ChIAPET[[cell_line]]), 
-                      NROW(peaks_raw_HiChIP[[cell_line]]), 
-                      NROW(common_peaks$com12), 12)
-  dev.off()
-  
-  png(paste0('plots/venn_diagrams/Common_peaks_between_trial_',experiment_1,'_and_',experiment_3,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
-  plot.new()
-  draw_2_venn_diagram(NROW(peaks_raw_ChIAPET[[cell_line]]), 
-                      NROW(peaks_raw_ChIPSeq[[cell_line]]), 
-                      NROW(common_peaks$com13), 13)
-  dev.off()
-  
-  png(paste0('plots/venn_diagrams/Common_peaks_between_trial_',experiment_2,'_and_',experiment_3,'_',cell_line,'_pulled_exp_',p_exp,'.png'), res = 300, width = 2400, height = 2400)
-  plot.new()
-  draw_2_venn_diagram(NROW(peaks_raw_HiChIP[[cell_line]]), 
-                      NROW(peaks_raw_ChIPSeq[[cell_line]]), 
-                      NROW(common_peaks$com23), 23)
+    
+  venndiag=VennDiagram::draw.pairwise.venn(NROW(IRanges::reduce(c(rep2_peaks_raw_ChIAPET[[paste0(cell_line,"_rep1")]], 
+                                                                   rep2_peaks_raw_ChIAPET[[paste0(cell_line,"_rep2")]]))),
+                                            NROW(peaks_raw_ChIAPET[[cell_line]]),
+                                            NROW(subsetByOverlaps(peaks_raw_ChIAPET[[cell_line]],
+                                                                  IRanges::reduce(c(rep2_peaks_raw_ChIAPET[[paste0(cell_line,"_rep1")]], 
+                                                                                    rep2_peaks_raw_ChIAPET[[paste0(cell_line,"_rep2")]])))
+                                                 ),
+                                                scaled = T,
+                                                category=c("Single replicates", "Merged replicates"),
+                                                print.mode=c('raw','percent'),
+                                                fill=c("lightskyblue", color("chiapet")),
+                                                rotation.degree=0,
+                                                lwd = 3,
+                                                cat.cex = 2,
+                                                cat.pos = c(240,120),
+                                                cat.dist = c(0.11, 0.11),
+                                                ext.pos =c(-30, 30),
+                                                ext.percent=.4,
+                                                margin = 0.11,
+                                                cex = 2.5)
   dev.off()
 }
 
-rm(common_peaks)
+# HiChIP
+for (cell_line in trios){
+  png(paste0('plots/venn_diagrams/Common_raw_peaks_HiChIP_', cell_line, '_different_replicates.png'), res = 300, width = 2400, height = 2400)
+  plot.new()
+  
+  venndiag=VennDiagram::draw.pairwise.venn( NROW(IRanges::reduce(c(rep2_peaks_raw_HiChIP[[paste0(cell_line,"_rep1")]], 
+                                                                   rep2_peaks_raw_HiChIP[[paste0(cell_line,"_rep2")]]))), 
+                                            NROW(peaks_raw_HiChIP[[cell_line]]), 
+                                            NROW(subsetByOverlaps(peaks_raw_HiChIP[[cell_line]],
+                                                                  IRanges::reduce(c(rep2_peaks_raw_HiChIP[[paste0(cell_line,"_rep1")]], 
+                                                                                    rep2_peaks_raw_HiChIP[[paste0(cell_line,"_rep2")]])))),
+                                                scaled = T,
+                                                category=c("Single replicates", "Merged replicates"),
+                                                print.mode=c('raw','percent'),
+                                                fill=c("darkolivegreen1", color("hichip")),
+                                                rotation.degree=0,
+                                                lwd = 3,
+                                                cat.cex = 2,
+                                                cat.pos = c(240,120),
+                                                cat.dist = c(0.11, 0.11),
+                                                ext.pos =c(-30, 30),
+                                                ext.percent=.25,
+                                                margin = 0.11,
+                                                cex = 2.5)
+  dev.off()
+}
+
 
 ```
 
@@ -195,6 +184,54 @@ for (cell_line in trios){
 rm(common_peaks)
 ```
 
+# Reduced peaks comparison inside the cell line for 3 technologies (ec. GM19238 --> ChIAPET, HiChIP and ChIPSeq)
+
+```{r}
+
+trios=c("GM19238", "GM19239", "GM19240")
+
+experiment_1<<-"chiapet"
+experiment_2<<-"hichip"
+experiment_3<<-"chipseq"
+
+for (cell_line in trios){
+  
+  common_peaks=find_true_all_relative_overlaps(peaks_reduced_with_motif_ChIAPET[[cell_line]], 
+                                               peaks_reduced_with_motif_HiChIP[[cell_line]], 
+                                               peaks_reduced_with_motif_ChIPSeq[[cell_line]],
+                                               "experiments")
+  assign(paste0(cell_line, "_common_peaks_3_tech_red"), common_peaks)
+  
+  # Draw and save the plots
+  png(paste0('plots/venn_diagrams/Common_peaks_between_technologies_', cell_line, '_reduced.png'), res = 300, width = 4200, height = 4200)
+  plot.new()
+  draw_3_venn_diagram(common_peaks)
+  dev.off()
+  
+  # Pairwise Venn diagrams
+
+  png(paste0('plots/venn_diagrams/Common_peaks_between_',experiment_1,'_and_',experiment_2,'_',cell_line,'_reduced.png'),
+      res = 300, width = 2400, height = 2400)
+  plot.new()
+  draw_2_venn_diagram(common_peaks, 12)
+  dev.off()
+
+  png(paste0('plots/venn_diagrams/Common_peaks_between_',experiment_1,'_and_',experiment_3,'_',cell_line,'_reduced.png'),
+      res = 300, width = 2400, height = 2400)
+  plot.new()
+  draw_2_venn_diagram(common_peaks, 13)
+  dev.off()
+
+  png(paste0('plots/venn_diagrams/Common_peaks_between_',experiment_2,'_and_',experiment_3,'_',cell_line,'_reduced.png'),
+      res = 300, width = 2400, height = 2400)
+  plot.new()
+  draw_2_venn_diagram(common_peaks, 23)
+  dev.off()
+}
+
+rm(common_peaks)
+
+```
 # Comparison between the trios on the same technology (x3)
 ```{r}
 cell_lines<<-c("GM19238", "GM19239", "GM19240")

@@ -68,7 +68,7 @@ for (cell_line in cell_lines){
   # Draw the plots
   png(paste0('plots/venn_diagrams/Common_raw_peaks_ChIA-PET_', cell_line, '_replicates.png'), res = 300, width = 2400, height = 2400)
   plot.new()
-  draw_2_venn_diagram(NROW(IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_1]])), 
+  draw_2_venn_diagram_from_raw(NROW(IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_1]])), 
                       NROW(IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_2]])), 
                       NROW(subsetByOverlaps(IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_1]]), 
                                             IRanges::reduce(rep2_peaks_raw_ChIAPET[[run_2]]))))
@@ -85,7 +85,7 @@ for (cell_line in cell_lines){
   # Draw the plots
   png(paste0('plots/venn_diagrams/Common_peaks_with_motif_ChIA-PET_', cell_line, '_replicates.png'), res = 300, width = 2400, height = 2400)
   plot.new()
-  draw_2_venn_diagram(NROW(IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_1]])), 
+  draw_2_venn_diagram_from_raw(NROW(IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_1]])), 
                       NROW(IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_2]])), 
                       NROW(subsetByOverlaps(IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_1]]), 
                                             IRanges::reduce(rep2_peaks_with_motif_ChIAPET[[run_2]]))))
@@ -118,7 +118,7 @@ for (cell_line in cell_lines){
   # Draw the plots
   png(paste0('plots/venn_diagrams/Common_raw_peaks_HiChIP_', cell_line, '_replicates.png'), res = 300, width = 2400, height = 2400)
   plot.new()
-  draw_2_venn_diagram(NROW(IRanges::reduce(rep2_peaks_raw_HiChIP[[run_1]])), 
+  draw_2_venn_diagram_from_raw(NROW(IRanges::reduce(rep2_peaks_raw_HiChIP[[run_1]])), 
                       NROW(IRanges::reduce(rep2_peaks_raw_HiChIP[[run_2]])), 
                       NROW(common_peaks_HiChIP_replicates_raw[[cell_line]]))
   dev.off()
@@ -139,7 +139,7 @@ for (cell_line in cell_lines){
   # Draw the plots
   png(paste0('plots/venn_diagrams/Common_peaks_with_motif_HiChIP_', cell_line, '_replicates.png'), res = 300, width = 2400, height = 2400)
   plot.new()
-  draw_2_venn_diagram(NROW(IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_1]])), 
+  draw_2_venn_diagram_from_raw(NROW(IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_1]])), 
                       NROW(IRanges::reduce(rep2_peaks_with_motif_HiChIP[[run_2]])), 
                       NROW(common_peaks_HiChIP_replicates_motif[[cell_line]]))
   dev.off()

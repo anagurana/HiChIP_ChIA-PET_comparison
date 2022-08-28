@@ -439,6 +439,62 @@ prop_name=function(technology){
   return(name)
 }
 
+
+draw_2_venn_diagram_from_raw=function(area1, area2, cross.area, region=12){
+  
+  if (area1 < area2){
+    rotation_degree=180
+    cat_pos=c(60,300)
+    ext_pos=c(140, -140)
+  }
+  else {
+    rotation_degree=0
+    cat_pos=c(240,120)
+    ext_pos=c(-30, 30)
+  }
+  
+  if (region==12) {exp_1=experiment_1 
+  exp_2=experiment_2}
+  else if (region==13){exp_1=experiment_1 
+  exp_2=experiment_3}
+  else if (region==23){exp_1=experiment_2
+  exp_2=experiment_3}
+  
+  if (experiment_1==experiment_2){
+    venndiag=VennDiagram::draw.pairwise.venn( area1, area2, cross.area,
+                                              scaled = T,
+                                              category=c(run_1, run_2),
+                                              print.mode=c('raw','percent'),
+                                              fill=c(color(run_1), color(run_2)),
+                                              rotation.degree=rotation_degree,
+                                              lwd = 3,
+                                              cat.cex = 2,
+                                              cat.pos = cat_pos,
+                                              cat.dist = c(0.11, 0.11),
+                                              ext.pos = ext_pos,
+                                              ext.percent=.25,
+                                              margin = 0.11,
+                                              cex = 2.5)
+  } else {
+    venndiag=VennDiagram::draw.pairwise.venn( area1, area2, cross.area,
+                                              scaled = T,
+                                              category=c(prop_name(exp_1), prop_name(exp_2)),
+                                              print.mode=c('raw'),
+                                              fill=c(color(exp_1), color(exp_2)),
+                                              rotation.degree=rotation_degree,
+                                              lwd = 3,
+                                              cat.cex = 2,
+                                              cat.pos = cat_pos,
+                                              cat.dist = c(0.11, 0.11),
+                                              ext.pos = ext_pos,
+                                              ext.percent=.25,
+                                              margin = 0.11,
+                                              cex = 2.5)
+    
+  }
+}
+
+
 draw_2_venn_diagram=function(common_peaks, region=12){
   peaks_quantity=elementNROWS(common_peaks)
   
