@@ -23,7 +23,11 @@ upd_functions=function(){
 ```{r}
 # Read CTCF motif peaks
 CTCF.hg38 = read.table(file.path("data/CTCF_hg38.txt"))
-CTCF.hg38 = GRanges(seqnames = CTCF.hg38$V1, IRanges(start = CTCF.hg38$V3, width = CTCF.hg38$V4), strand = ifelse(CTCF.hg38$V5=='p', "+", "-"), score=CTCF.hg38$V6)
+CTCF.hg38 = GRanges(seqnames = CTCF.hg38$V1, 
+                    IRanges(start = CTCF.hg38$V3, 
+                            width = CTCF.hg38$V4), 
+                    strand = ifelse(CTCF.hg38$V5=='p', "+", "-"), 
+                    score=CTCF.hg38$V6)
 CTCF.hg38 = CTCF.hg38[CTCF.hg38$score >0]
 ```
 # [Merged replicates] Upload of the peaks data
@@ -53,9 +57,9 @@ for (cell_line in trios){
   peaks_raw_HiChIP[[cell_line]]=read_peaks(get_peaks_path(experiment_2, cell_line))
   peaks_raw_ChIPSeq[[cell_line]]=read_peaks(get_peaks_path(experiment_3, cell_line))
   
-  peaks_with_motif_ChIAPET[[cell_line]]=peaks_raw_ChIAPET[[cell_line]][unique(queryHits(findOverlaps(IRanges::reduce(peaks_raw_ChIAPET[[cell_line]]), IRanges::reduce(CTCF.hg38))))]
-  peaks_with_motif_HiChIP[[cell_line]]=peaks_raw_HiChIP[[cell_line]][unique(queryHits(findOverlaps(IRanges::reduce(peaks_raw_HiChIP[[cell_line]]), IRanges::reduce(CTCF.hg38))))]
-  peaks_with_motif_ChIPSeq[[cell_line]]=peaks_raw_ChIPSeq[[cell_line]][unique(queryHits(findOverlaps(IRanges::reduce(peaks_raw_ChIPSeq[[cell_line]]), IRanges::reduce(CTCF.hg38))))]
+  peaks_with_motif_ChIAPET[[cell_line]]=peaks_raw_ChIAPET[[cell_line]][unique(queryHits(findOverlaps(peaks_raw_ChIAPET[[cell_line]], CTCF.hg38)))]
+  peaks_with_motif_HiChIP[[cell_line]]=peaks_raw_HiChIP[[cell_line]][unique(queryHits(findOverlaps(peaks_raw_HiChIP[[cell_line]], CTCF.hg38)))]
+  peaks_with_motif_ChIPSeq[[cell_line]]=peaks_raw_ChIPSeq[[cell_line]][unique(queryHits(findOverlaps(peaks_raw_ChIPSeq[[cell_line]], CTCF.hg38)))]
   
   peaks_reduced_with_motif_ChIAPET[[cell_line]]=IRanges::reduce(peaks_with_motif_ChIAPET[[cell_line]]+p_exp)
   peaks_reduced_with_motif_HiChIP[[cell_line]]=IRanges::reduce(peaks_with_motif_HiChIP[[cell_line]]+p_exp)
@@ -75,7 +79,6 @@ for (cell_line in trios){
 ```
 
 # Comparison of peaks between single and merged replicates
-
 ```{r}
 
 # chiapet
@@ -84,12 +87,12 @@ for (cell_line in trios){
   png(paste0('plots/venn_diagrams/Common_raw_peaks_ChIA-PET_', cell_line, '_different_replicates.png'), res = 300, width = 2400, height = 2400)
   plot.new()
     
-  venndiag=VennDiagram::draw.pairwise.venn(NROW(IRanges::reduce(c(rep2_peaks_raw_ChIAPET[[paste0(cell_line,"_rep1")]], 
-                                                                   rep2_peaks_raw_ChIAPET[[paste0(cell_line,"_rep2")]]))),
-                                            NROW(peaks_raw_ChIAPET[[cell_line]]),
-                                            NROW(subsetByOverlaps(peaks_raw_ChIAPET[[cell_line]],
-                                                                  IRanges::reduce(c(rep2_peaks_raw_ChIAPET[[paste0(cell_line,"_rep1")]], 
-                                                                                    rep2_peaks_raw_ChIAPET[[paste0(cell_line,"_rep2")]])))
+  venndiag=VennDiagram::draw.pairwise.venn(NROW(IRanges::reduce(c(rep2_peaks_with_motif_ChIAPET[[paste0(cell_line,"_rep1")]], 
+                                                                   rep2_peaks_with_motif_ChIAPET[[paste0(cell_line,"_rep2")]]))),
+                                            NROW(peaks_with_motif_ChIAPET[[cell_line]]),
+                                            NROW(subsetByOverlaps(peaks_with_motif_ChIAPET[[cell_line]],
+                                                                  IRanges::reduce(c(rep2_peaks_with_motif_ChIAPET[[paste0(cell_line,"_rep1")]], 
+                                                                                    rep2_peaks_with_motif_ChIAPET[[paste0(cell_line,"_rep2")]])))
                                                  ),
                                                 scaled = T,
                                                 category=c("Single replicates", "Merged replicates"),
@@ -112,12 +115,12 @@ for (cell_line in trios){
   png(paste0('plots/venn_diagrams/Common_raw_peaks_HiChIP_', cell_line, '_different_replicates.png'), res = 300, width = 2400, height = 2400)
   plot.new()
   
-  venndiag=VennDiagram::draw.pairwise.venn( NROW(IRanges::reduce(c(rep2_peaks_raw_HiChIP[[paste0(cell_line,"_rep1")]], 
-                                                                   rep2_peaks_raw_HiChIP[[paste0(cell_line,"_rep2")]]))), 
-                                            NROW(peaks_raw_HiChIP[[cell_line]]), 
-                                            NROW(subsetByOverlaps(peaks_raw_HiChIP[[cell_line]],
-                                                                  IRanges::reduce(c(rep2_peaks_raw_HiChIP[[paste0(cell_line,"_rep1")]], 
-                                                                                    rep2_peaks_raw_HiChIP[[paste0(cell_line,"_rep2")]])))),
+  venndiag=VennDiagram::draw.pairwise.venn( NROW(IRanges::reduce(c(rep2_peaks_with_motif_HiChIP[[paste0(cell_line,"_rep1")]], 
+                                                                   rep2_peaks_with_motif_HiChIP[[paste0(cell_line,"_rep2")]]))), 
+                                            NROW(peaks_with_motif_HiChIP[[cell_line]]), 
+                                            NROW(subsetByOverlaps(peaks_with_motif_HiChIP[[cell_line]],
+                                                                  IRanges::reduce(c(rep2_peaks_with_motif_HiChIP[[paste0(cell_line,"_rep1")]], 
+                                                                                    rep2_peaks_with_motif_HiChIP[[paste0(cell_line,"_rep2")]])))),
                                                 scaled = T,
                                                 category=c("Single replicates", "Merged replicates"),
                                                 print.mode=c('raw','percent'),
@@ -138,7 +141,6 @@ for (cell_line in trios){
 ```
 
 # Peaks comparison inside of the cell line for every technology(x3) (ec. GM19238 --> ChIAPET, HiChIP and ChIPSeq)
-
 ```{r}
 trios=c("GM19238", "GM19239", "GM19240")
 
@@ -185,7 +187,6 @@ rm(common_peaks)
 ```
 
 # Reduced peaks comparison inside the cell line for 3 technologies (ec. GM19238 --> ChIAPET, HiChIP and ChIPSeq)
-
 ```{r}
 
 trios=c("GM19238", "GM19239", "GM19240")
@@ -232,7 +233,32 @@ for (cell_line in trios){
 rm(common_peaks)
 
 ```
+
+# Strength of CTCF motif
+```{r}
+trios=c("GM19238", "GM19239", "GM19240")
+
+#Create GRangesLists that will conclude peaks with CTCF strength info
+
+for (cell_line in trios){
+  
+  ctcf_strength=GRangesList(GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges())
+  names(ctcf_strength)=names(GM19238_common_peaks_3_tech)
+  
+  for (overlap in names(ctcf_strength_GM19238)){
+  
+    ctcf_strength[[overlap]]=add_motif_info_to_peaks(get(paste0(cell_line,"_common_peaks_3_tech_red"))[[overlap]], CTCF.hg38)
+    assign(paste0("ctcf_strength_", cell_line), ctcf_strength)
+  }
+}
+rm(ctcf_strength)
+
+
+# add_motif_info_to_peaks
+```
+
 # Comparison between the trios on the same technology (x3)
+
 ```{r}
 cell_lines<<-c("GM19238", "GM19239", "GM19240")
 experiments<<-c("ChIAPET", "HiChIP", "ChIPSeq")
@@ -259,7 +285,9 @@ rm(common_peaks)
 
 
 ```
+
 # Compare if the peaks between two family members are the same as for the third member
+
 ```{r}
 
 experiments=c("ChIAPET", "HiChIP", "ChIPSeq")
@@ -305,7 +333,9 @@ hichip_not_chipseq=subsetByOverlaps(unlist(true_common_peaks_HiChIP, recursive =
 elementNROWS(common_with_ChIPSeq___HiChIP)
 
 ```
+
 Do the same with 1kb extension on both sides
+
 ```{r}
 
 true_common_peaks_experiment_reduced=GRangesList(constant_peaks=GRanges(), common_38_39=GRanges(),
@@ -353,6 +383,7 @@ elementNROWS(common_with_ChIPSeq_reduced___HiChIP)
 ```
 
 # Draw common peaks inside Trios as pie charts
+
 ```{r}
 
 cell_lines<<-c("GM19238", "GM19239", "GM19240")
@@ -522,7 +553,9 @@ Calculate the TPM value
 
 ```
 
+
 # Generation of BED files (peaks and bins)
+
 ```{r}
 
 cell_lines=c("GM19238", "GM19239", "GM19240")
@@ -623,8 +656,8 @@ write.table(unname(data.frame(seqnames(chiapet_bins),
 
 ```
 
-
 # MAnorms normalization
+
 ```{r}
 ### ChIA-PET ###
 browseVignettes("MAnorm2")
@@ -1528,9 +1561,7 @@ names(confusion_data_chiapet_2rep)=names(common_chiapet_manorm_2rep)[1:3]
 
 ```
 
-
 # [ChIA-PET merged] MANorm input
-
 ```{r}
 # Name of the experiment is being used during the saving of the plots
 experiment="ChIA-PET"
@@ -1599,7 +1630,6 @@ dev.off()
 ```
 
 #[ChIA-PET merged] Modeling of Mean-Variance Trend
-
 ```{r}
 ### Construct a bioCond for each group of samples.
 conds_chiapet <- list(
@@ -1643,7 +1673,6 @@ plotMeanVarCurve(conds_chiapet_meanCurve$all_trios[4], subset = "occupied", ylim
 ```
 
 # [ChIA-PET merged] Differential Tests
-
 ```{r}
 
 ### # Perform differential tests
@@ -1677,7 +1706,6 @@ dev.off()
 ```
 
 #[ChIA-PET merged] Differential Tests - statistical power of identifying differential genomic intervals for merged and single replicates
-
 ```{r}
 
 #Define the correlation between single and merged replicates
@@ -1750,7 +1778,6 @@ names(pos_false_tables_chiapet)=names(common_chiapet_manorm)[c(1,4,5,2,6,7,3,8,9
 ```
 
 [ChIA-PET merged] Confusion matrices
-
 ```{r}
 # List that contains filtered peaks (wout sex chromosomes and peaks that are coming from 3 cell line) 
 # They are being used to create confusion matrices

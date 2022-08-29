@@ -23,7 +23,6 @@ suppressMessages(library(patchwork))
 suppressMessages(library(caret))
 suppressMessages(library(MAnorm2))
 
-
 get_peaks_path <- function(exp_type, cell_line){
   dir_path=file.path("data", exp_type, cell_line)
   peaks_file_path=list.files(dir_path, pattern='.broadPeak', 
@@ -230,6 +229,43 @@ get_percentg_common_peaks=function(grangesList){
   percent_common_peaks=data.frame(no_peaks=c(n_all_peaks, nrows_grangeslist[1:7]), percentage=round(c(100, nrows_grangeslist[1:7]/n_all_peaks*100), 2))
   rownames(percent_common_peaks) = c("no_peaks", "constant_peaks","common_38_39", "common_38_40", "common_39_40", "unique_38", "unique_39", "unique_40")
   return(percent_common_peaks)
+}
+
+# CTCF motif
+
+add_motif_info_to_peaks=function(peaks, CTCF_data){
+  
+  peaks.ctcfoverlap = findOverlaps(peaks, CTCF_data)
+  
+  numbers_CTCF=c()
+  max_motif_CTCF=c()
+  average_motif_CTCF=c()
+  v=1
+  
+  for (p in 1:NROW(peaks)){
+    id_motifs_CTCF_per_peak=c()
+    while (v <= NROW(peaks.ctcfoverlap) && queryHits(peaks.ctcfoverlap)[v] == p){
+      id_motifs_CTCF_per_peak=c(id_motifs_CTCF_per_peak, subjectHits(peaks.ctcfoverlap[v]))
+      v=v+1
+    }
+    
+    numbers_CTCF=c(numbers_CTCF, NROW(id_motifs_CTCF_per_peak))
+    
+    if (NROW(id_motifs_CTCF_per_peak) == 0){
+      max_motif_CTCF=c(max_motif_CTCF, 0)
+      average_motif_CTCF=c(average_motif_CTCF, 0)
+    }
+    else{
+      motifs_CTCF_per_peak=CTCF_data[id_motifs_CTCF_per_peak]
+      max_motif_CTCF=c(max_motif_CTCF, max(motifs_CTCF_per_peak$score))
+      average_motif_CTCF=c(average_motif_CTCF, sum(motifs_CTCF_per_peak$score)/NROW(motifs_CTCF_per_peak))
+    }
+  }
+  
+  peaks$numbers_CTCF=numbers_CTCF
+  peaks$max_motif_CTCF=max_motif_CTCF
+  peaks$average_motif_CTCF=average_motif_CTCF
+  return(peaks)
 }
 
 generate_manorm_plot=function(cells, norm, raw=NULL){
