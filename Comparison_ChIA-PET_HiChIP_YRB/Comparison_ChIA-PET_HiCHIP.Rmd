@@ -245,7 +245,7 @@ for (cell_line in trios){
   ctcf_strength=GRangesList(GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges())
   names(ctcf_strength)=names(GM19238_common_peaks_3_tech)
   
-  for (overlap in names(ctcf_strength_GM19238)){
+  for (overlap in names(ctcf_strength)){
   
     ctcf_strength[[overlap]]=add_motif_info_to_peaks(get(paste0(cell_line,"_common_peaks_3_tech_red"))[[overlap]], CTCF.hg38)
     assign(paste0("ctcf_strength_", cell_line), ctcf_strength)
@@ -253,9 +253,113 @@ for (cell_line in trios){
 }
 rm(ctcf_strength)
 
+# Calculate the mean max CTCF motif strength
+tmp=vector(mode="list", length=NROW(ctcf_strength_GM19238))
+names(tmp)=names(ctcf_strength_GM19238)
+avergae_max_ctcf=list(tmp,tmp,tmp)
+names(avergae_max_ctcf)=trios
+rm(tmp)
 
-# add_motif_info_to_peaks
+for (cell_line in trios){
+  for (overlap in names(ctcf_strength_GM19238)){
+    avergae_max_ctcf[[cell_line]][[overlap]]=mean(get(paste0("ctcf_strength_", cell_line))[[overlap]]$max_motif_CTCF)
+  }
+}
+
+
 ```
+
+# Histograms CTCF motif
+```{r}
+png(paste0('plots/peaks/CTCF_motif_strength_GM19238.png'), res = 300, width = 8000, height = 4200)
+plot.new()
+par(
+  mfrow=c(3,3),
+  mar=c(5,5,5,5)
+)
+line<-par(lwd=5)
+
+hist(ctcf_strength_GM19238[[5]]$max_motif_CTCF,
+     col="#9496ff", main="Unique peaks in ChIA-PET", 
+     xlab="Strongest CTCF motif score", 
+     cex.lab=2.5, cex.axis=2.5, cex.main=4)
+hist(ctcf_strength_GM19238[[2]]$max_motif_CTCF, 
+     col="#73cb91", main="Common peaks ChIA-PET & HiChIP", 
+     xlab="Strongest CTCF motif score", 
+     cex.lab=2.5, cex.axis=2.5, cex.main=4)
+hist(ctcf_strength_GM19238[[6]]$max_motif_CTCF, 
+      col="#b1fe88", main="Unique peaks in HiChIP", 
+     xlab="Strongest CTCF motif score", 
+     cex.lab=2.5, cex.axis=2.5, cex.main=4)
+hist(ctcf_strength_GM19238[[3]]$max_motif_CTCF,
+      col="#db4e97", main="Common peaks ChIP-Seq & ChIA-PET", 
+     xlab="Strongest CTCF motif score", 
+     cex.lab=2.5, cex.axis=2.5, cex.main=4)
+hist(ctcf_strength_GM19238[[1]]$max_motif_CTCF,
+      col="#d36f4f", main="Common peaks for 3 technologies", 
+     xlab="Strongest CTCF motif score", 
+     cex.lab=2.5, cex.axis=2.5, cex.main=4)
+hist(ctcf_strength_GM19238[[4]]$max_motif_CTCF,
+      col="#ed8f48", main="Common peaks ChIP-Seq & HiChIP", 
+     xlab="Strongest CTCF motif score", 
+     cex.lab=2.5, cex.axis=2.5, cex.main=4)
+plot.new()
+hist(ctcf_strength_GM19238[[7]]$max_motif_CTCF,
+col="#ff8f92", main="Unique peaks in ChIP-Seq", 
+xlab="Strongest CTCF motif score", 
+cex.lab=2.5, cex.axis=2.5, cex.main=4)
+
+dev.off()
+
+```
+
+# Violin plots of CTCF motif
+```{r}
+# Orders of overlaps from from names(ctcf_strength_GM19238)
+ord_of_overlaps=c(5,2,6,7,3,4,1)
+
+# final Boxplots names
+names_box_plot <- c(paste("\nCommon \npeaks\n for 3 technologies"), 
+                    paste("\nCommon \npeaks\nChIA-PET & \nHiChIP"), 
+                    paste("\nCommon \npeaks\n ChIP-Seq & \nChIA-PET"), 
+                    paste("\nCommon \npeaks\n ChIP-Seq & \nHiChIP"), 
+                    paste("\nUnique \npeaks\n ChIA-PET"), 
+                    paste("\nUnique \npeaks\n HiChIP"), 
+                    paste("\nUnique \npeaks\n ChIP-Seq")) 
+
+colors=c("#d36f4f","#73cb91", "#db4e97","#ed8f48", "#9496ff","#b1fe88", "#ff8f92")
+
+for (cell_line in trios){
+  png(paste0("plots/peaks/CTCF_motif_strength_", cell_line,"_violin.png"), res = 300, width = 5000, height = 3000)
+  plot.new()
+  
+  ctcf_strength_max_motif=data.frame()
+  for (overlap in names(ctcf_strength_GM19238)[ord_of_overlaps]){
+    tmp_ctcf_df=data.frame(value=get(paste0("ctcf_strength_", cell_line))[[overlap]]$max_motif_CTCF, variable=overlap)
+    ctcf_strength_max_motif=rbind(ctcf_strength_max_motif,tmp_ctcf_df)
+  }
+  rm(tmp_ctcf_df)
+  ctcf_strength_max_motif=ctcf_strength_max_motif%>%
+    mutate(variable=factor(variable,levels=names(get(paste0("ctcf_strength_", cell_line)))[ord_of_overlaps]))
+  
+  print(ggplot(ctcf_strength_max_motif, aes(x=variable, y=value, fill=variable))+  
+  geom_violin()+
+  geom_boxplot(width=0.1)+
+  theme_minimal()+
+  scale_x_discrete(labels=names_box_plot[ord_of_overlaps])+
+  theme(text = element_text(size=25),
+        axis.text.x = element_text(angle=0, hjust=0.5))+
+  scale_fill_manual(values=colors[ord_of_overlaps])+
+  theme(legend.position="none")+
+  ylab("Strongest CTCF motif score")+
+  xlab(c()))
+  
+  dev.off()
+  
+}
+
+```
+
 
 # Comparison between the trios on the same technology (x3)
 
@@ -558,11 +662,11 @@ Calculate the TPM value
 
 ```{r}
 
-cell_lines=c("GM19238", "GM19239", "GM19240")
+trios=c("GM19238", "GM19239", "GM19240")
 
 ### ChIA-PET ###
 # Converting peaks.gr into peaks.bed 
-for (cell_line in cell_lines){
+for (cell_line in trios){
   write.table(unname(data.frame(seqnames(peaks_with_motif_ChIAPET[[cell_line]]), 
                                 start(peaks_with_motif_ChIAPET[[cell_line]]), 
                                 end(peaks_with_motif_ChIAPET[[cell_line]]))),
@@ -575,14 +679,14 @@ chiapet_bins=IRanges::reduce(unlist(peaks_with_motif_ChIAPET, recursive = TRUE, 
 write.table(unname(data.frame(seqnames(chiapet_bins),
                               start(chiapet_bins),
                               end(chiapet_bins))),
-            paste0("data//chiapet/bins_ChIAPET.bed"),
+            paste0("data/chiapet/bins_ChIAPET.bed"),
             sep="\t",row.names=FALSE, quote = FALSE)
 
 
 ### HiChIP ###
 cell_lines=c("GM19238", "GM19239", "GM19240")
 # Converting peaks.gr into peaks.bed 
-for (cell_line in cell_lines){
+for (cell_line in trios){
   write.table(unname(data.frame(seqnames(peaks_with_motif_HiChIP[[cell_line]]), 
                                 start(peaks_with_motif_HiChIP[[cell_line]]), 
                                 end(peaks_with_motif_HiChIP[[cell_line]]))),

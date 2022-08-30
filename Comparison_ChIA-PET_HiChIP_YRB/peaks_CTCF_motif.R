@@ -100,47 +100,47 @@ get_peaks_with_motif=function(peaks_with_mowif){
 #                              "Per_peaks_with_CTCF"=c(frac_with_motif_chiapet, frac_with_motif_hichip, frac_with_motif_chipseq))
 
 
-## Add motif info to peaks 
-# for all peaks in each technology
-peaks_chiapet_with_motif_info=add_motif_info_to_peaks(peaks_gm19238_chiapet, CTCF.hg38)
-peaks_hichip_with_motif_info=add_motif_info_to_peaks(peaks_gm19238_hichip, CTCF.hg38)
-peaks_chipseq_with_motif_info=add_motif_info_to_peaks(peaks_gm19238_chipseq, CTCF.hg38)
+# ## Add motif info to peaks 
+# # for all peaks in each technology
+# peaks_chiapet_with_motif_info=add_motif_info_to_peaks(peaks_gm19238_chiapet, CTCF.hg38)
+# peaks_hichip_with_motif_info=add_motif_info_to_peaks(peaks_gm19238_hichip, CTCF.hg38)
+# peaks_chipseq_with_motif_info=add_motif_info_to_peaks(peaks_gm19238_chipseq, CTCF.hg38)
+# 
+# # for common peaks for 3 technologies
+# peaks_between_3_repl_with_motif_info=add_motif_info_to_peaks(common_overlaps$com123, CTCF.hg38)
+# 
+# # for common peaks between 2 technologies
+# overlap14=subsetByOverlaps(common_overlaps$com13, common_overlaps$com123, invert = TRUE)
+# peaks_14_with_motif_info=add_motif_info_to_peaks(overlap14, CTCF.hg38)
+# overlap24=subsetByOverlaps(common_overlaps$com12, common_overlaps$com123, invert = TRUE)
+# peaks_24_with_motif_info=add_motif_info_to_peaks(overlap24, CTCF.hg38)
+# overlap34=subsetByOverlaps(common_overlaps$com23, common_overlaps$com123, invert = TRUE)
+# peaks_34_with_motif_info=add_motif_info_to_peaks(overlap34, CTCF.hg38)
+# 
+# # for unique peaks for each technology
+# overlap1=subsetByOverlaps(peaks_gm19238_chiapet, common_overlaps$com13, invert = TRUE)
+# overlap_raw1=subsetByOverlaps(overlap1, overlap24, invert = TRUE)
+# peaks_unique_chiapet_with_motif_info=add_motif_info_to_peaks(overlap_raw1, CTCF.hg38)
+# 
+# overlap2=subsetByOverlaps(peaks_gm19238_hichip, common_overlaps$com12, invert = TRUE)
+# overlap_raw2=subsetByOverlaps(overlap2, overlap34, invert = TRUE)
+# peaks_unique_hichip_with_motif_info=add_motif_info_to_peaks(overlap_raw2, CTCF.hg38)
+# 
+# overlap3=subsetByOverlaps(peaks_gm19238_chipseq, common_overlaps$com23, invert = TRUE)
+# overlap_raw3=subsetByOverlaps(overlap3, overlap14, invert = TRUE)
+# peaks_unique_chipseq_with_motif_info=add_motif_info_to_peaks(overlap_raw3, CTCF.hg38)
+# 
+# # Make a GRangesList with all regions included
+# all_peaks_with_motifs_info=GRangesList(
+#   peaks_chiapet_with_motif_info, peaks_hichip_with_motif_info, peaks_chipseq_with_motif_info,
+#   peaks_unique_chiapet_with_motif_info, peaks_unique_hichip_with_motif_info, peaks_unique_chipseq_with_motif_info, 
+#   peaks_14_with_motif_info, peaks_24_with_motif_info, peaks_34_with_motif_info, 
+#   peaks_between_3_repl_with_motif_info)
 
-# for common peaks for 3 technologies
-peaks_between_3_repl_with_motif_info=add_motif_info_to_peaks(common_overlaps$com123, CTCF.hg38)
-
-# for common peaks between 2 technologies
-overlap14=subsetByOverlaps(common_overlaps$com13, common_overlaps$com123, invert = TRUE)
-peaks_14_with_motif_info=add_motif_info_to_peaks(overlap14, CTCF.hg38)
-overlap24=subsetByOverlaps(common_overlaps$com12, common_overlaps$com123, invert = TRUE)
-peaks_24_with_motif_info=add_motif_info_to_peaks(overlap24, CTCF.hg38)
-overlap34=subsetByOverlaps(common_overlaps$com23, common_overlaps$com123, invert = TRUE)
-peaks_34_with_motif_info=add_motif_info_to_peaks(overlap34, CTCF.hg38)
-
-# for unique peaks for each technology
-overlap1=subsetByOverlaps(peaks_gm19238_chiapet, common_overlaps$com13, invert = TRUE)
-overlap_raw1=subsetByOverlaps(overlap1, overlap24, invert = TRUE)
-peaks_unique_chiapet_with_motif_info=add_motif_info_to_peaks(overlap_raw1, CTCF.hg38)
-
-overlap2=subsetByOverlaps(peaks_gm19238_hichip, common_overlaps$com12, invert = TRUE)
-overlap_raw2=subsetByOverlaps(overlap2, overlap34, invert = TRUE)
-peaks_unique_hichip_with_motif_info=add_motif_info_to_peaks(overlap_raw2, CTCF.hg38)
-
-overlap3=subsetByOverlaps(peaks_gm19238_chipseq, common_overlaps$com23, invert = TRUE)
-overlap_raw3=subsetByOverlaps(overlap3, overlap14, invert = TRUE)
-peaks_unique_chipseq_with_motif_info=add_motif_info_to_peaks(overlap_raw3, CTCF.hg38)
-
-# Make a GRangesList with all regions included
-all_peaks_with_motifs_info=GRangesList(
-  peaks_chiapet_with_motif_info, peaks_hichip_with_motif_info, peaks_chipseq_with_motif_info,
-  peaks_unique_chiapet_with_motif_info, peaks_unique_hichip_with_motif_info, peaks_unique_chipseq_with_motif_info, 
-  peaks_14_with_motif_info, peaks_24_with_motif_info, peaks_34_with_motif_info, 
-  peaks_between_3_repl_with_motif_info)
-
-i=1
-peaks_with_motifs_allregions=c()
-for (i in 1:NROW(all_peaks_with_motifs_info)){
-  peaks_with_motifs_allregions=c(peaks_with_motifs_allregions, get_peaks_with_motif(all_peaks_with_motifs_info[[i]]))}
+# i=1
+# peaks_with_motifs_allregions=c()
+# for (i in 1:NROW(all_peaks_with_motifs_info)){
+#   peaks_with_motifs_allregions=c(peaks_with_motifs_allregions, get_peaks_with_motif(all_peaks_with_motifs_info[[i]]))}
 
 ## Create box plots, 1 - total number of peaks for 3 tech, 2 - common regions
 # make a list with CTCF strongest motid value
