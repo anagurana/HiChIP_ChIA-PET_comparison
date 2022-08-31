@@ -324,53 +324,6 @@ dev.off()
 
 ```
 
-# Violin plots of CTCF motif
-```{r}
-# Orders of overlaps from from names(ctcf_strength_GM19238)
-ord_of_overlaps=c(5,2,6,7,3,4,1)
-
-# final Boxplots names
-names_box_plot <- c(paste("\nCommon \npeaks\n for 3 technologies"), 
-                    paste("\nCommon \npeaks\nChIA-PET & \nHiChIP"), 
-                    paste("\nCommon \npeaks\n ChIP-Seq & \nChIA-PET"), 
-                    paste("\nCommon \npeaks\n ChIP-Seq & \nHiChIP"), 
-                    paste("\nUnique \npeaks\n ChIA-PET"), 
-                    paste("\nUnique \npeaks\n HiChIP"), 
-                    paste("\nUnique \npeaks\n ChIP-Seq")) 
-
-colors=c("#d36f4f","#73cb91", "#db4e97","#ed8f48", "#9496ff","#b1fe88", "#ff8f92")
-
-for (cell_line in trios){
-  png(paste0("plots/peaks/CTCF_motif_strength_", cell_line,"_violin.png"), res = 300, width = 5000, height = 3000)
-  plot.new()
-  
-  ctcf_strength_max_motif=data.frame()
-  for (overlap in names(ctcf_strength_GM19238)[ord_of_overlaps]){
-    tmp_ctcf_df=data.frame(value=get(paste0("ctcf_strength_", cell_line))[[overlap]]$max_motif_CTCF, variable=overlap)
-    ctcf_strength_max_motif=rbind(ctcf_strength_max_motif,tmp_ctcf_df)
-  }
-  rm(tmp_ctcf_df)
-  ctcf_strength_max_motif=ctcf_strength_max_motif%>%
-    mutate(variable=factor(variable,levels=names(get(paste0("ctcf_strength_", cell_line)))[ord_of_overlaps]))
-  
-  print(ggplot(ctcf_strength_max_motif, aes(x=variable, y=value, fill=variable))+  
-  geom_violin()+
-  geom_boxplot(width=0.1)+
-  theme_minimal()+
-  scale_x_discrete(labels=names_box_plot[ord_of_overlaps])+
-  theme(text = element_text(size=25),
-        axis.text.x = element_text(angle=0, hjust=0.5))+
-  scale_fill_manual(values=colors[ord_of_overlaps])+
-  theme(legend.position="none")+
-  ylab("Strongest CTCF motif score")+
-  xlab(c()))
-  
-  dev.off()
-  
-}
-
-```
-
 # Add coverage to every peak
 ```{r}
 # trios=c("GM19238", "GM19239", "GM19240")
@@ -517,103 +470,36 @@ rm(common_peaks)
 
 ```
 
-# Compare if the peaks between two family members are the same as for the third member
+# Compare if subsets of peaks between technologies are the same
 ```{r}
 
 experiments=c("ChIAPET", "HiChIP", "ChIPSeq")
 
-for (experiment in experiments){
-  
-  # between trios or between experiment
-  true_common_peaks_experiment=
-    find_true_all_relative_overlaps(get(paste0("peaks_wout_sex_chr_", experiment))$GM19238,
-                                  get(paste0("peaks_wout_sex_chr_", experiment))$GM19239,
-                                  get(paste0("peaks_wout_sex_chr_", experiment))$GM19240,
-                                  "trios")
-   assign(paste0("true_common_peaks_", experiment), true_common_peaks_experiment)
-  
+# Find how many peaks are common for the same regions in different technologies
+overlaps_of_overlaps=list(constant_peaks=data.frame(), 
+                          common_38_40=data.frame(), common_39_40=data.frame(),common_38_39=data.frame(),
+                          unique_38=data.frame(), unique_39=data.frame(), unique_40=data.frame())
+
+for (com_groups in names(overlaps_of_overlaps)){
+  overlaps_of_overlaps[[com_groups]]=
+    get_percentg_common_peaks(
+    find_true_all_relative_overlaps(common_reduced_peaks_for_trios_ChIAPET[[com_groups]],
+                                    common_reduced_peaks_for_trios_HiChIP[[com_groups]],
+                                    common_reduced_peaks_for_trios_ChIPSeq[[com_groups]],
+                                    "experiments"))
 }
-rm(true_common_peaks_experiment)
 
-prcntg_common=list(ChIAPET=get_percentg_common_peaks(true_common_peaks_ChIAPET),
-                   HiChIP=get_percentg_common_peaks(true_common_peaks_HiChIP),
-                   ChIPSeq=get_percentg_common_peaks(true_common_peaks_ChIPSeq))
-
-
-# Find how many peaks are common with ChIP-Seq 
-common_with_ChIPSeq=GRangesList(constant_peaks=GRanges(), common_38_39=GRanges(),
-                                common_38_40=GRanges(), common_39_40=GRanges(), 
-                                unique_38=GRanges(), unique_39=GRanges(), unique_40=GRanges())
-
-for (experiment in c("ChIAPET", "HiChIP")){
-  for (com_groups in names(common_with_ChIPSeq)){
-    common_with_ChIPSeq[[com_groups]]=subsetByOverlaps(IRanges::reduce(get(paste0("true_common_peaks_", experiment))[[com_groups]]), 
-                   IRanges::reduce(true_common_peaks_ChIPSeq[[com_groups]]))
-  }
-  assign(paste0("common_with_ChIPSeq___", experiment), common_with_ChIPSeq)
-}
-rm(common_with_ChIPSeq)
-
-subsetByOverlaps(unlist(true_common_peaks_ChIAPET, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE))
-chiapet_not_chipseq=subsetByOverlaps(unlist(true_common_peaks_ChIAPET, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE), invert=TRUE)
-elementNROWS(common_with_ChIPSeq___ChIAPET)
-
-subsetByOverlaps(unlist(true_common_peaks_HiChIP, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE))
-hichip_not_chipseq=subsetByOverlaps(unlist(true_common_peaks_HiChIP, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE), invert=TRUE)
-elementNROWS(common_with_ChIPSeq___HiChIP)
-
-```
-
-Do the same with 1kb extension on both sides
-
-```{r}
-
-true_common_peaks_experiment_reduced=GRangesList(constant_peaks=GRanges(), common_38_39=GRanges(),
-                                common_38_40=GRanges(), common_39_40=GRanges(), 
-                                unique_38=GRanges(), unique_39=GRanges(), unique_40=GRanges())
-### Reducing the peaks
-for (experiment in experiments){
-  for (com_groups in names(true_common_peaks_experiment_reduced))
-  true_common_peaks_experiment_reduced[[com_groups]]=
-    IRanges::reduce(get(paste0("true_common_peaks_", experiment))[[com_groups]]+p_exp)
-  assign(paste0("true_common_peaks_reduced_", experiment), true_common_peaks_experiment_reduced)
-}
-rm(true_common_peaks_experiment_reduced)
-
-prcntg_common_reduced=list(ChIAPET=get_percentg_common_peaks(true_common_peaks_reduced_ChIAPET),
-                   HiChIP=get_percentg_common_peaks(true_common_peaks_reduced_HiChIP),
-                   ChIPSeq=get_percentg_common_peaks(true_common_peaks_reduced_ChIPSeq))
-
-# Find how many peaks are common with ChIP-Seq (peaks are reduced with 1kb extension from each side)
-common_with_ChIPSeq_reduced=GRangesList(constant_peaks=GRanges(), common_38_39=GRanges(),
-                                common_38_40=GRanges(), common_39_40=GRanges(), 
-                                unique_38=GRanges(), unique_39=GRanges(), unique_40=GRanges())
-for (experiment in c("ChIAPET", "HiChIP")){
-  for (com_groups in names(common_with_ChIPSeq_reduced)){
-    common_with_ChIPSeq_reduced[[com_groups]]=subsetByOverlaps(get(paste0("true_common_peaks_reduced_", experiment))[[com_groups]], 
-                                                               true_common_peaks_reduced_ChIPSeq[[com_groups]])
-  }
-  assign(paste0("common_with_ChIPSeq_reduced___", experiment), common_with_ChIPSeq_reduced)
-}
-rm(common_with_ChIPSeq_reduced)
-
-
-subsetByOverlaps(unlist(true_common_peaks_reduced_ChIAPET, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_reduced_ChIPSeq, recursive = TRUE, use.names = TRUE))
-chiapet_not_chipseq=subsetByOverlaps(unlist(true_common_peaks_reduced_ChIAPET, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_reduced_ChIPSeq, recursive = TRUE, use.names = TRUE), invert=TRUE)
-elementNROWS(common_with_ChIPSeq_reduced___ChIAPET)
-
-subsetByOverlaps(unlist(true_common_peaks_reduced_HiChIP, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_reduced_ChIPSeq, recursive = TRUE, use.names = TRUE))
-hichip_not_chipseq=subsetByOverlaps(unlist(true_common_peaks_reduced_HiChIP, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_reduced_ChIPSeq, recursive = TRUE, use.names = TRUE), invert=TRUE)
-elementNROWS(common_with_ChIPSeq_reduced___HiChIP)
-
-
-#Merge GRangesList
-# unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE)
+# subsetByOverlaps(unlist(true_common_peaks_ChIAPET, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE))
+# chiapet_not_chipseq=subsetByOverlaps(unlist(true_common_peaks_ChIAPET, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE), invert=TRUE)
+# elementNROWS(common_with_ChIPSeq___ChIAPET)
+# 
+# subsetByOverlaps(unlist(true_common_peaks_HiChIP, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE))
+# hichip_not_chipseq=subsetByOverlaps(unlist(true_common_peaks_HiChIP, recursive = TRUE, use.names = TRUE), unlist(true_common_peaks_ChIPSeq, recursive = TRUE, use.names = TRUE), invert=TRUE)
+# elementNROWS(common_with_ChIPSeq___HiChIP)
 
 ```
 
 # Draw common peaks inside Trios as pie charts
-
 ```{r}
 
 cell_lines<<-c("GM19238", "GM19239", "GM19240")
@@ -683,6 +569,89 @@ for (experiment in experiments){
   while (!is.null(dev.list()))  dev.off()
 }
 
+
+```
+
+# Strength of CTCF motif
+```{r}
+trios<<-c("GM19238", "GM19239", "GM19240")
+experiments<<-c("ChIAPET", "HiChIP", "ChIPSeq")
+
+#Create GRangesLists that will conclude peaks with CTCF strength info
+
+
+for (experiment in experiments){
+  
+  ctcf_strength=GRangesList(GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges())
+  names(ctcf_strength)=names(common_reduced_peaks_for_trios_ChIAPET)
+  
+  for (overlap in names(ctcf_strength)){
+  
+    ctcf_strength[[overlap]]=add_motif_info_to_peaks(get(paste0("common_reduced_peaks_for_trios_", experiment))[[overlap]], CTCF.hg38)
+    assign(paste0("ctcf_strength_", experiment), ctcf_strength)
+  }
+}
+rm(ctcf_strength)
+
+# Calculate the mean max CTCF motif strength
+tmp=vector(mode="list", length=NROW(ctcf_strength_ChIAPET))
+names(tmp)=names(ctcf_strength_ChIAPET)
+avergae_max_ctcf=list(tmp,tmp,tmp)
+names(avergae_max_ctcf)=experiments
+rm(tmp)
+
+for (experiment in experiments){
+  for (overlap in names(ctcf_strength_ChIAPET)){
+    avergae_max_ctcf[[experiment]][[overlap]]=mean(get(paste0("ctcf_strength_", experiment))[[overlap]]$max_motif_CTCF)
+  }
+}
+
+```
+
+# Violin plots of CTCF motif
+```{r}
+# Orders of overlaps from from names(ctcf_strength_GM19238)
+ord_of_overlaps=c(5,2,6,7,3,4,1)
+
+# final Boxplots names
+names_box_plot <- c(paste("\nCommon \npeaks\n for 3 technologies"), 
+                    paste("\nCommon \npeaks\nChIA-PET & \nHiChIP"), 
+                    paste("\nCommon \npeaks\n ChIP-Seq & \nChIA-PET"), 
+                    paste("\nCommon \npeaks\n ChIP-Seq & \nHiChIP"), 
+                    paste("\nUnique \npeaks\n ChIA-PET"), 
+                    paste("\nUnique \npeaks\n HiChIP"), 
+                    paste("\nUnique \npeaks\n ChIP-Seq")) 
+
+colors=c("#d36f4f","#73cb91", "#db4e97","#ed8f48", "#9496ff","#b1fe88", "#ff8f92")
+
+for (cell_line in trios){
+  png(paste0("plots/peaks/CTCF_motif_strength_", cell_line,"_violin.png"), res = 300, width = 5000, height = 3000)
+  plot.new()
+  
+  ctcf_strength_max_motif=data.frame()
+  for (overlap in names(ctcf_strength_GM19238)[ord_of_overlaps]){
+    tmp_ctcf_df=data.frame(value=get(paste0("ctcf_strength_", cell_line))[[overlap]]$max_motif_CTCF, variable=overlap)
+    ctcf_strength_max_motif=rbind(ctcf_strength_max_motif,tmp_ctcf_df)
+  }
+  rm(tmp_ctcf_df)
+  ctcf_strength_max_motif=ctcf_strength_max_motif%>%
+    mutate(variable=factor(variable,levels=names(get(paste0("ctcf_strength_", cell_line)))[ord_of_overlaps]))
+  
+  print(ggplot(ctcf_strength_max_motif, aes(x=variable, y=value, fill=variable))+  
+  geom_violin()+
+  geom_boxplot(width=0.1)+
+  theme_minimal()+
+  scale_x_discrete(labels=names_box_plot[ord_of_overlaps])+
+  theme(text = element_text(size=25),
+        axis.text.x = element_text(angle=0, hjust=0.5))+
+  scale_fill_manual(values=colors[ord_of_overlaps])+
+  theme(legend.position="none")+
+  ylab("Strongest CTCF motif score")+
+  xlab(c()))
+  
+  dev.off()
+  
+}
 
 ```
 

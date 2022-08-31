@@ -226,8 +226,32 @@ get_percentg_common_peaks=function(grangesList){
   
   nrows_grangeslist=elementNROWS(grangesList)
   n_all_peaks=sum(nrows_grangeslist)
-  percent_common_peaks=data.frame(no_peaks=c(n_all_peaks, nrows_grangeslist[1:7]), percentage=round(c(100, nrows_grangeslist[1:7]/n_all_peaks*100), 2))
-  rownames(percent_common_peaks) = c("no_peaks", "constant_peaks","common_38_39", "common_38_40", "common_39_40", "unique_38", "unique_39", "unique_40")
+  peaks_experiments=list(chiapet=sum(nrows_grangeslist[c(1,2,3,5)]),
+                         hichip=sum(nrows_grangeslist[c(1,2,4,6)]),
+                         chipseq=sum(nrows_grangeslist[c(1,3,4,7)]))
+  
+  no_peaks=c(n_all_peaks, 
+             nrows_grangeslist[c(1,3,4,2,2,5,6,7)])
+  
+  reference=c(n_all_peaks/n_all_peaks, 
+             nrows_grangeslist[1]/n_all_peaks,
+             sum(nrows_grangeslist[c(1,3)])/peaks_experiments$chiapet, 
+             sum(nrows_grangeslist[c(1,4)])/peaks_experiments$hichip, 
+             sum(nrows_grangeslist[c(1,2)])/peaks_experiments$chiapet,
+             sum(nrows_grangeslist[c(1,2)])/peaks_experiments$hichip,
+             nrows_grangeslist[5]/peaks_experiments$chiapet, 
+             nrows_grangeslist[6]/peaks_experiments$hichip, 
+             nrows_grangeslist[7]/peaks_experiments$chipseq)
+  
+  
+  percent_common_peaks=data.frame(no_peaks, 
+                                  percentage=round(reference*100, 2))
+  
+  
+  rownames(percent_common_peaks) = c("no_peaks", 
+                                     "3 technologies", "chiapet_chipseq", "hichip_chipseq", 
+                                     "chiapet_hichip","hichip_chiapet", 
+                                     "unique_chiapet", "unique_hichip", "unique_chipseq")
   return(percent_common_peaks)
 }
 
