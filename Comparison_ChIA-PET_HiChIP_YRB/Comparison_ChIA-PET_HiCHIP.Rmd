@@ -30,6 +30,7 @@ CTCF.hg38 = GRanges(seqnames = CTCF.hg38$V1,
                     score=CTCF.hg38$V6)
 CTCF.hg38 = CTCF.hg38[CTCF.hg38$score >0]
 ```
+
 # [Merged replicates] Upload of the peaks data
 ```{r}
 trios=c("GM19238", "GM19239", "GM19240")
@@ -45,9 +46,9 @@ peaks_raw_ChIAPET=GRangesList("GM19238"=GRanges(), "GM19239"=GRanges(), "GM19240
 peaks_raw_HiChIP=GRangesList("GM19238"=GRanges(), "GM19239"=GRanges(), "GM19240"=GRanges())
 peaks_raw_ChIPSeq=GRangesList("GM19238"=GRanges(), "GM19239"=GRanges(), "GM19240"=GRanges())
 
-peaks_wout_sex_chr_ChIAPET=peaks_with_motif_ChIAPET=peaks_reduced_with_motif_ChIAPET=peaks_raw_ChIAPET
-peaks_wout_sex_chr_HiChIP=peaks_with_motif_HiChIP=peaks_reduced_with_motif_HiChIP=peaks_raw_HiChIP
-peaks_wout_sex_chr_ChIPSeq=peaks_with_motif_ChIPSeq=peaks_reduced_with_motif_ChIPSeq=peaks_raw_ChIPSeq
+peaks_wout_sex_chr_reduced_ChIAPET=peaks_wout_sex_chr_ChIAPET=peaks_with_motif_ChIAPET=peaks_reduced_with_motif_ChIAPET=peaks_raw_ChIAPET
+peaks_wout_sex_chr_reduced_HiChIP=peaks_wout_sex_chr_HiChIP=peaks_with_motif_HiChIP=peaks_reduced_with_motif_HiChIP=peaks_raw_HiChIP
+peaks_wout_sex_chr_reduced_ChIPSeq=peaks_wout_sex_chr_ChIPSeq=peaks_with_motif_ChIPSeq=peaks_reduced_with_motif_ChIPSeq=peaks_raw_ChIPSeq
 
 #Create GRangesLists that will conclude all the trios data
 
@@ -74,6 +75,16 @@ for (cell_line in trios){
   peaks_wout_sex_chr_ChIPSeq[[cell_line]]=subset(
     peaks_with_motif_ChIPSeq[[cell_line]],
     !(peaks_with_motif_ChIPSeq[[cell_line]]@seqnames %in% c('chrY', 'chrX', 'chrM')))
+  
+  peaks_wout_sex_chr_reduced_ChIAPET[[cell_line]]=subset(
+    peaks_reduced_with_motif_ChIAPET[[cell_line]],
+    !(peaks_reduced_with_motif_ChIAPET[[cell_line]]@seqnames %in% c('chrY', 'chrX', 'chrM')))
+  peaks_wout_sex_chr_reduced_HiChIP[[cell_line]]=subset(
+    peaks_reduced_with_motif_HiChIP[[cell_line]],
+    !(peaks_reduced_with_motif_HiChIP[[cell_line]]@seqnames %in% c('chrY', 'chrX', 'chrM')))
+  peaks_wout_sex_chr_reduced_ChIPSeq[[cell_line]]=subset(
+    peaks_reduced_with_motif_ChIPSeq[[cell_line]],
+    !(peaks_reduced_with_motif_ChIPSeq[[cell_line]]@seqnames %in% c('chrY', 'chrX', 'chrM')))
 }
 
 ```
@@ -360,38 +371,153 @@ for (cell_line in trios){
 
 ```
 
+# Add coverage to every peak
+```{r}
+# trios=c("GM19238", "GM19239", "GM19240")
+
+experiment="chiapet"
+cell_line="GM19238"
+
+reads_count_chiapet_GM19238=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_ChIAPET[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 100)
+
+peaks_with_motif_ChIAPET[[cell_line]]$coverage=unname(reads_count_chiapet_GM19238$counts[,1])
+
+cell_line="GM19239"
+
+reads_count_chiapet_GM19239=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_ChIAPET[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 100)
+
+peaks_with_motif_ChIAPET[[cell_line]]$coverage=unname(reads_count_chiapet_GM19239$counts[,1])
+
+cell_line="GM19240"
+
+reads_count_chiapet_GM19240=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_ChIAPET[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 100)
+
+peaks_with_motif_ChIAPET[[cell_line]]$coverage=unname(reads_count_chiapet_GM19240$counts[,1])
+
+####### HiChIP ######
+experiment="hichip"
+
+cell_line="GM19238"
+reads_count_hichip_GM19238=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_HiChIP[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 32)
+peaks_with_motif_HiChIP[[cell_line]]$coverage=unname(reads_count_hichip_GM19238$counts[,1])
+
+cell_line="GM19239"
+reads_count_hichip_GM19239=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_HiChIP[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 32)
+peaks_with_motif_HiChIP[[cell_line]]$coverage=unname(reads_count_hichip_GM19239$counts[,1])
+
+cell_line="GM19240"
+reads_count_hichip_GM19240=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_HiChIP[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 32)
+peaks_with_motif_HiChIP[[cell_line]]$coverage=unname(reads_count_hichip_GM19240$counts[,1])
+
+####### ChIP-Seq ######
+experiment="chipseq"
+
+cell_line="GM19238"
+reads_count_chipseq_GM19238=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_all_with_motif_ChIPSeq[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 32)
+peaks_all_with_motif_ChIPSeq[[cell_line]]$coverage=unname(reads_count_chipseq_GM19238$counts[,1])
+
+cell_line="GM19239"
+reads_count_chipseq_GM19239=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_all_with_motif_ChIPSeq[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 32)
+peaks_all_with_motif_ChIPSeq[[cell_line]]$coverage=unname(reads_count_chipseq_GM19239$counts[,1])
+
+cell_line="GM19240"
+reads_count_chipseq_GM19240=featureCounts(
+  read_bam_file(experiment, cell_line), 
+  annot.ext = convert_peak_to_df_featcnt(peaks_all_with_motif_ChIPSeq[[cell_line]]), 
+  isPairedEnd = T, 
+  nthreads = 32)
+peaks_all_with_motif_ChIPSeq[[cell_line]]$coverage=unname(reads_count_chipseq_GM19240$counts[,1])
+
+```
+
+#Calculation of the TPM value
+```{r}
+
+```
 
 # Comparison between the trios on the same technology (x3)
-
 ```{r}
-cell_lines<<-c("GM19238", "GM19239", "GM19240")
+trios<<-c("GM19238", "GM19239", "GM19240")
 experiments<<-c("ChIAPET", "HiChIP", "ChIPSeq")
 
 for (experiment in experiments){
   
   experiment_1<<-experiment_2<<-experiment_3<<-experiment
   
-  common_peaks=find_main_overlaps_between_3(get(paste0("peaks_wout_sex_chr_", experiment))$GM19238, 
+  common_peaks=find_true_all_relative_overlaps(get(paste0("peaks_wout_sex_chr_", experiment))$GM19238, 
                                             get(paste0("peaks_wout_sex_chr_", experiment))$GM19239, 
-                                            get(paste0("peaks_wout_sex_chr_", experiment))$GM19240)
+                                            get(paste0("peaks_wout_sex_chr_", experiment))$GM19240,
+                                            "trios")
   assign(paste0("common_peaks_for_trios_", experiment), common_peaks)
   
   # Draw and save the plots
-  png(paste0('Common_peaks_inside_trios_', experiment, '.png'), res = 300, width = 4200, height = 4200)
+  png(paste0('plots/venn_diagrams/Common_peaks_inside_trios_', experiment, '.png'), res = 300, width = 4200, height = 4200)
   plot.new()
-  draw_3_venn_diagram(NROW(get(paste0("peaks_wout_sex_chr_", experiment))$GM19238), 
-                      NROW(get(paste0("peaks_wout_sex_chr_", experiment))$GM19239), 
-                      NROW(get(paste0("peaks_wout_sex_chr_", experiment))$GM19240), 
-                      common_peaks)
+  draw_3_venn_diagram(common_peaks)
   dev.off()
 }
 rm(common_peaks)
 
+```
+
+# Comparison between the reduced trios on the same technology (x3)
+```{r}
+trios<<-c("GM19238", "GM19239", "GM19240")
+experiments<<-c("ChIAPET", "HiChIP", "ChIPSeq")
+
+for (experiment in experiments){
+  
+  experiment_1<<-experiment_2<<-experiment_3<<-experiment
+  
+  common_peaks=find_true_all_relative_overlaps(get(paste0("peaks_wout_sex_chr_reduced_", experiment))$GM19238, 
+                                            get(paste0("peaks_wout_sex_chr_reduced_", experiment))$GM19239, 
+                                            get(paste0("peaks_wout_sex_chr_reduced_", experiment))$GM19240,
+                                            "trios")
+  assign(paste0("common_reduced_peaks_for_trios_", experiment), common_peaks)
+  
+  # Draw and save the plots
+  png(paste0('plots/venn_diagrams/Common_reduced_peaks_inside_trios_', experiment, '.png'), res = 300, width = 4200, height = 4200)
+  plot.new()
+  draw_3_venn_diagram(common_peaks)
+  dev.off()
+}
+rm(common_peaks)
 
 ```
 
 # Compare if the peaks between two family members are the same as for the third member
-
 ```{r}
 
 experiments=c("ChIAPET", "HiChIP", "ChIPSeq")
@@ -557,103 +683,6 @@ for (experiment in experiments){
   while (!is.null(dev.list()))  dev.off()
 }
 
-
-```
-
-# Add coverage to every peak
-
-```{r}
-# cell_lines=c("GM19238", "GM19239", "GM19240")
-
-experiment="chiapet"
-cell_line="GM19238"
-
-reads_count_chiapet_GM19238=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_ChIAPET[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 100)
-
-peaks_with_motif_ChIAPET[[cell_line]]$coverage=unname(reads_count_chiapet_GM19238$counts[,1])
-
-cell_line="GM19239"
-
-reads_count_chiapet_GM19239=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_ChIAPET[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 100)
-
-peaks_with_motif_ChIAPET[[cell_line]]$coverage=unname(reads_count_chiapet_GM19239$counts[,1])
-
-cell_line="GM19240"
-
-reads_count_chiapet_GM19240=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_ChIAPET[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 100)
-
-peaks_with_motif_ChIAPET[[cell_line]]$coverage=unname(reads_count_chiapet_GM19240$counts[,1])
-
-####### HiChIP ######
-experiment="hichip"
-
-cell_line="GM19238"
-reads_count_hichip_GM19238=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_HiChIP[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 32)
-peaks_with_motif_HiChIP[[cell_line]]$coverage=unname(reads_count_hichip_GM19238$counts[,1])
-
-cell_line="GM19239"
-reads_count_hichip_GM19239=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_HiChIP[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 32)
-peaks_with_motif_HiChIP[[cell_line]]$coverage=unname(reads_count_hichip_GM19239$counts[,1])
-
-cell_line="GM19240"
-reads_count_hichip_GM19240=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_with_motif_HiChIP[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 32)
-peaks_with_motif_HiChIP[[cell_line]]$coverage=unname(reads_count_hichip_GM19240$counts[,1])
-
-####### ChIP-Seq ######
-experiment="chipseq"
-
-cell_line="GM19238"
-reads_count_chipseq_GM19238=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_all_with_motif_ChIPSeq[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 32)
-peaks_all_with_motif_ChIPSeq[[cell_line]]$coverage=unname(reads_count_chipseq_GM19238$counts[,1])
-
-cell_line="GM19239"
-reads_count_chipseq_GM19239=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_all_with_motif_ChIPSeq[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 32)
-peaks_all_with_motif_ChIPSeq[[cell_line]]$coverage=unname(reads_count_chipseq_GM19239$counts[,1])
-
-cell_line="GM19240"
-reads_count_chipseq_GM19240=featureCounts(
-  read_bam_file(experiment, cell_line), 
-  annot.ext = convert_peak_to_df_featcnt(peaks_all_with_motif_ChIPSeq[[cell_line]]), 
-  isPairedEnd = T, 
-  nthreads = 32)
-peaks_all_with_motif_ChIPSeq[[cell_line]]$coverage=unname(reads_count_chipseq_GM19240$counts[,1])
-
-
-```
-Calculate the TPM value
-```{r}
 
 ```
 

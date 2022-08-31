@@ -622,8 +622,8 @@ draw_3_venn_diagram=function(common_peaks){
   #Draw plots
   if (experiment_1 == experiment_2 & experiment_1 == experiment_3){
     venndiag = VennDiagram::draw.triple.venn(area1, area2, area3, n12, n23, n13, n123, 
-                                fill=c(color(cell_lines[1]), color(cell_lines[2]), color(cell_lines[3])),
-                                category=c(cell_lines[1], cell_lines[2], cell_lines[3]),
+                                fill=c(color(trios[1]), color(trios[2]), color(trios[3])),
+                                category=c(trios[1], trios[2], trios[3]),
                                 print.mode=c('raw','percent'),
                                 lwd = 4,
                                 cat.dist = c(0.06, 0.06, 0.03),
