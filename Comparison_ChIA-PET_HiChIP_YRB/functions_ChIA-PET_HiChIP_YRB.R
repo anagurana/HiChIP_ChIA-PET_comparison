@@ -202,7 +202,7 @@ find_true_all_relative_overlaps=function(peaks1, peaks2, peaks3, rel_param){
                                   unique_40=unique_peaks_3)
   }
   else if (rel_param == "experiments"){
-    true_common_peaks=GRangesList(constant_peaks=constant_peaks, 
+    true_common_peaks=GRangesList(all_technologies=constant_peaks, 
                                   common_ChIAPET_HiChIP=unique_common_peaks_1_2,
                                   common_ChIAPET_ChIPSeq=unique_common_peaks_1_3,
                                   common_HiChIP_ChIPSeq=unique_common_peaks_2_3,
@@ -647,6 +647,7 @@ draw_3_venn_diagram=function(common_peaks){
   if (experiment_1 == experiment_2 & experiment_1 == experiment_3){
     venndiag = VennDiagram::draw.triple.venn(area1, area2, area3, n12, n23, n13, n123, 
                                 fill=c(color(trios[1]), color(trios[2]), color(trios[3])),
+                                alpha=c(0.1, 0.1, 0.1),
                                 category=c(trios[1], trios[2], trios[3]),
                                 print.mode=c('raw','percent'),
                                 lwd = 4,

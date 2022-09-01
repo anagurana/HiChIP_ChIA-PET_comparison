@@ -277,7 +277,6 @@ for (cell_line in trios){
   }
 }
 
-
 ```
 
 # Histograms CTCF motif
@@ -323,6 +322,54 @@ cex.lab=2.5, cex.axis=2.5, cex.main=4)
 dev.off()
 
 ```
+
+# Violin plots of CTCF motif
+```{r}
+# Orders of overlaps from from names(ctcf_strength_GM19238)
+ord_of_overlaps=c(5,2,6,7,3,4,1)
+
+# final Boxplots names
+names_box_plot <- c(paste("\nCommon \npeaks\n for 3 technologies"), 
+                    paste("\nCommon \npeaks\nChIA-PET & \nHiChIP"), 
+                    paste("\nCommon \npeaks\n ChIP-Seq & \nChIA-PET"), 
+                    paste("\nCommon \npeaks\n ChIP-Seq & \nHiChIP"), 
+                    paste("\nUnique \npeaks\n ChIA-PET"), 
+                    paste("\nUnique \npeaks\n HiChIP"), 
+                    paste("\nUnique \npeaks\n ChIP-Seq")) 
+
+colors=c("#d36f4f","#73cb91", "#db4e97","#ed8f48", "#9496ff","#b1fe88", "#ff8f92")
+
+for (cell_line in trios){
+  png(paste0("plots/peaks/CTCF_motif_strength_", cell_line,"_violin.png"), res = 300, width = 5000, height = 3000)
+  plot.new()
+  
+  ctcf_strength_max_motif=data.frame()
+  for (overlap in names(ctcf_strength_GM19238)[ord_of_overlaps]){
+    tmp_ctcf_df=data.frame(value=get(paste0("ctcf_strength_", cell_line))[[overlap]]$max_motif_CTCF, variable=overlap)
+    ctcf_strength_max_motif=rbind(ctcf_strength_max_motif,tmp_ctcf_df)
+  }
+  rm(tmp_ctcf_df)
+  ctcf_strength_max_motif=ctcf_strength_max_motif%>%
+    mutate(variable=factor(variable,levels=names(get(paste0("ctcf_strength_", cell_line)))[ord_of_overlaps]))
+  
+  print(ggplot(ctcf_strength_max_motif, aes(x=variable, y=value, fill=variable))+  
+  geom_violin()+
+  geom_boxplot(width=0.1)+
+  theme_minimal()+
+  scale_x_discrete(labels=names_box_plot[ord_of_overlaps])+
+  theme(text = element_text(size=25),
+        axis.text.x = element_text(angle=0, hjust=0.5))+
+  scale_fill_manual(values=colors[ord_of_overlaps])+
+  theme(legend.position="none")+
+  ylab("CTCF motif score")+
+  xlab(c()))
+  
+  dev.off()
+  
+}
+
+```
+
 
 # Add coverage to every peak
 ```{r}
@@ -470,10 +517,89 @@ rm(common_peaks)
 
 ```
 
-# Compare if subsets of peaks between technologies are the same
+# Strength of CTCF motif for every technology (ChIA-PET, HiChIP and ChIP-Seq)
 ```{r}
+experiments=c("ChIAPET","HiChIP","ChIPSeq")
 
-experiments=c("ChIAPET", "HiChIP", "ChIPSeq")
+#Create GRangesLists that will conclude peaks with CTCF strength info
+
+for (experiment in experiments){
+  
+  ctcf_strength=GRangesList(GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges())
+  names(ctcf_strength)=names(common_reduced_peaks_for_trios_ChIAPET)
+  
+  for (overlap in names(ctcf_strength)){
+  
+    ctcf_strength[[overlap]]=add_motif_info_to_peaks(get(paste0("common_reduced_peaks_for_trios_", experiment))[[overlap]], CTCF.hg38)
+    assign(paste0("ctcf_strength_", experiment), ctcf_strength)
+  }
+}
+rm(ctcf_strength)
+
+# Calculate the mean max CTCF motif strength
+tmp=vector(mode="list", length=NROW(common_reduced_peaks_for_trios_ChIAPET))
+names(tmp)=names(common_reduced_peaks_for_trios_ChIAPET)
+avergae_max_ctcf_per_experiment=list(tmp,tmp,tmp)
+names(avergae_max_ctcf_per_experiment)=experiments
+rm(tmp)
+
+for (experiment in experiments){
+  for (overlap in names(common_reduced_peaks_for_trios_ChIAPET)){
+    avergae_max_ctcf_per_experiment[[experiment]][[overlap]]=mean(get(paste0("ctcf_strength_", experiment))[[overlap]]$max_motif_CTCF)
+  }
+}
+
+```
+
+# Violin plots of CTCF motif inside of the experiment
+```{r}
+# Orders of overlaps from from names(ctcf_strength_ChIAPET)
+ord_of_overlaps=c(1,3,4,2,5,6,7)
+
+# final Violin plots names
+names_box_plot <- c(paste("\nConstant \npeaks"), 
+                    paste("\nCommon \npeaks\nmother & \nfather"), 
+                    paste("\nCommon \npeaks\nmother & \ndaughter"), 
+                    paste("\nCommon \npeaks\nfather & \ndaughter"), 
+                    paste("\nUnique \npeaks\nmother"), 
+                    paste("\nUnique \npeaks\nfather"), 
+                    paste("\nUnique \npeaks\ndaughter")) 
+
+colors=c("#bf7a94","#976ecf", "#ff5952","#9cae8c", color("GM19238"),color("GM19239"), color("GM19240"))
+
+for (experiment in experiments){
+  png(paste0("plots/peaks/CTCF_motif_strength_", experiment,"_violin.png"), res = 300, width = 4000, height = 1500)
+  plot.new()
+  
+  ctcf_strength_max_motif=data.frame()
+  for (overlap in names(ctcf_strength_ChIAPET)[ord_of_overlaps]){
+    tmp_ctcf_df=data.frame(value=get(paste0("ctcf_strength_", experiment))[[overlap]]$max_motif_CTCF, variable=overlap)
+    ctcf_strength_max_motif=rbind(ctcf_strength_max_motif,tmp_ctcf_df)
+  }
+  rm(tmp_ctcf_df)
+  ctcf_strength_max_motif=ctcf_strength_max_motif%>%
+    mutate(variable=factor(variable,levels=names(get(paste0("ctcf_strength_", experiment)))[ord_of_overlaps]))
+  
+  print(ggplot(ctcf_strength_max_motif, aes(x=variable, y=value, fill=variable))+  
+  geom_violin()+
+  geom_boxplot(width=0.1)+
+  theme_minimal()+
+  # scale_x_discrete(labels=names_box_plot[ord_of_overlaps])+
+  theme(text = element_text(size=25),
+        axis.text.x = element_text(angle=0, hjust=0.5))+
+  scale_fill_manual(values=colors[ord_of_overlaps])+
+  theme(legend.position="none")+
+  ylab("CTCF motif score")+
+  xlab(c()))
+  
+  dev.off()
+  
+}
+
+```
+
+# Compare if subsets of peaks between technologies are the same | overlap of overlaps
+```{r}
 
 # Find how many peaks are common for the same regions in different technologies
 overlaps_of_overlaps=list(constant_peaks=data.frame(), 
@@ -572,39 +698,31 @@ for (experiment in experiments){
 
 ```
 
-# Strength of CTCF motif
+# Strength of CTCF motif for overlap of overlaps
 ```{r}
-trios<<-c("GM19238", "GM19239", "GM19240")
-experiments<<-c("ChIAPET", "HiChIP", "ChIPSeq")
-
-#Create GRangesLists that will conclude peaks with CTCF strength info
-
-
-for (experiment in experiments){
-  
-  ctcf_strength=GRangesList(GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges(),GRanges())
-  names(ctcf_strength)=names(common_reduced_peaks_for_trios_ChIAPET)
-  
-  for (overlap in names(ctcf_strength)){
-  
-    ctcf_strength[[overlap]]=add_motif_info_to_peaks(get(paste0("common_reduced_peaks_for_trios_", experiment))[[overlap]], CTCF.hg38)
-    assign(paste0("ctcf_strength_", experiment), ctcf_strength)
-  }
-}
-rm(ctcf_strength)
-
 # Calculate the mean max CTCF motif strength
-tmp=vector(mode="list", length=NROW(ctcf_strength_ChIAPET))
-names(tmp)=names(ctcf_strength_ChIAPET)
-avergae_max_ctcf=list(tmp,tmp,tmp)
-names(avergae_max_ctcf)=experiments
-rm(tmp)
+max_ctcf_of_overlaps_of_overlaps=vector(mode="list", length=NROW(names(overlaps_of_overlaps)))
+names(max_ctcf_of_overlaps_of_overlaps)=names(overlaps_of_overlaps)
 
-for (experiment in experiments){
-  for (overlap in names(ctcf_strength_ChIAPET)){
-    avergae_max_ctcf[[experiment]][[overlap]]=mean(get(paste0("ctcf_strength_", experiment))[[overlap]]$max_motif_CTCF)
+
+for (com_groups in names(max_ctcf_of_overlaps_of_overlaps)){
+  tmp_const=find_true_all_relative_overlaps(common_reduced_peaks_for_trios_ChIAPET[[com_groups]],
+                                    common_reduced_peaks_for_trios_HiChIP[[com_groups]],
+                                    common_reduced_peaks_for_trios_ChIPSeq[[com_groups]],
+                                    "experiments")
+  max_ctcf_of_overlaps_of_overlaps[[com_groups]]=data.frame(matrix(NA, nrow=NROW(names(tmp_const))))
+  row.names(max_ctcf_of_overlaps_of_overlaps[[com_groups]])=names(tmp_const[c(1,3,4,2,5,6,7)])
+  
+  tmp_ctcf=c()
+  
+  for (overlap in names(tmp_const[c(1,3,4,2,5,6,7)])){
+    tmp_const[[overlap]]=add_motif_info_to_peaks(tmp_const[[overlap]], CTCF.hg38)
+    tmp_ctcf=c(tmp_ctcf,mean(tmp_const[[overlap]]$max_motif_CTCF))
   }
+  
+  max_ctcf_of_overlaps_of_overlaps[[com_groups]]$ctcf_strength=tmp_ctcf
 }
+rm(tmp_const, tmp_ctcf)
 
 ```
 
@@ -650,11 +768,9 @@ for (cell_line in trios){
   xlab(c()))
   
   dev.off()
-  
 }
 
 ```
-
 
 # Generation of BED files (peaks and bins)
 
@@ -1478,6 +1594,7 @@ subsetByOverlaps(hichip_constant_peaks_with_manorm, true_common_peaks_ChIPSeq$co
 
 
 ```
+
 # [ChIA-PET 2 rep] MANorm data processing
 ```{r}
 experiment="chiapet"
@@ -2094,6 +2211,7 @@ norm_hichip_2rep[sort(res_hichip_rep2_38_39$pval, index.return=T)$ix,]
 
 
 ```
+
 ##### Identifying Hypervariable ChIP-seq Signals
 ```{r}
 autosome <- !(norm_inp_hichip_2rep$chrom %in% c("chrX", "chrY"))
