@@ -940,7 +940,7 @@ constant_chiapet_by_manorm_peaks.gr=sort(GRanges(constant_chiapet_by_manorm_peak
 ### Overlapping pf the peaks
 # 9218 of 13811 are overlaping with ChIP-Seq constant peaks (0.667439)
 # with pval=0.03 --> 9715 of 14524 (0.6688929)
-# with pval=0.06 --> 8947 of 13447 (0.6653529) !!!
+# with pval=0.06 --> 8947 of 13447 (0.6653529) !!
 subsetByOverlaps(IRanges::reduce(constant_chiapet_by_manorm_peaks.gr+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp))
 
 # 0 of 14705 are actually overlaping with SPP detected peaks, 

@@ -380,7 +380,7 @@ create_table_common_peaks_with_info=function(norm, differential, conds, cell_lin
 }
 
 create_fp_tables=function(common,cell_lines){
-  # Devide picks into different groups
+  # Devide the picks into different groups
   cell1=paste0(str_sub(cell_lines[1],1,2),str_sub(cell_lines[1],start=6))
   cell2=paste0(str_sub(cell_lines[2],1,2),str_sub(cell_lines[2],start=6))
   

@@ -771,7 +771,7 @@ rm(common_peaks)
 
 ```
 
-# Comparison between the reduced trios on the same technology (x3)
+# Comparison between the reduced trios on the same technology (x3))
 ```{r}
 trios<<-c("GM19238", "GM19239", "GM19240")
 experiments<<-c("ChIAPET", "HiChIP", "ChIPSeq")
