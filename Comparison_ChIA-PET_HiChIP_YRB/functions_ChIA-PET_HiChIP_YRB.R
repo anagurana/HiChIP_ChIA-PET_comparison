@@ -48,6 +48,22 @@ convert_peak_to_df_featcnt=function(peak){
   return(peak_df)
 }
 
+#Calculate the FPKM value
+calculate_FPKM_TPM=function(peaks){
+  RC=peaks$coverage
+  SF=1000000
+  PL=width(peaks)
+  RPM=RC*SF/sum(RC)
+  FPKM=RPM/PL*1000
+  
+  #Calculate the TPM value
+  RPK=RC/PL*1000
+  TPM=RPK*SF/sum(RPK)
+  
+  return(data.frame(FPKM=FPKM, TPM=TPM))
+}
+
+
 read_peaks=function(peaks_path){
   peaks.tb <- read.table(peaks_path)
   peaks.gr <- GRanges(seqnames = peaks.tb$V1, IRanges(
@@ -306,7 +322,7 @@ generate_manorm_plot=function(cells, norm, raw=NULL){
                    norm[[paste0(cells[2], ".occupancy")]])
       main="After normalization"
       }
-  MAplot(param[[2]], param[[1]], param[[4]], param[[3]], ylim = set_ylim,
+  MAplot(param[[2]], param[[1]], param[[4]], param[[3]], ylim = set_ylim, xlim=set_xlim,
          main=main, cex=1.5, cex.main=2.3, 
          line=0.2,
          cex.axis=2, cex.lab=2,
@@ -326,7 +342,7 @@ generate_manorm_plot_trios=function(cells, norm, type){
   if(type=="before"){main="Before normalization"} 
   else {main="After normalization"}
   
-  MAplot(norm[[cells[2]]], norm[[cells[1]]], ylim = set_ylim,
+  MAplot(norm[[cells[2]]], norm[[cells[1]]], ylim = set_ylim, xlim=set_xlim,
          main=main, cex=1.5, cex.main=2.3, line=0.2, 
          cex.axis=2, cex.lab=2,
          # args.legend = list(
@@ -363,7 +379,7 @@ create_table_common_peaks_with_info=function(norm, differential, conds, cell_lin
   return(common)
 }
 
-create_fp_tables_and_save_graphs=function(common,cell_lines, experiment, prefix, padj_or_pval="isPadj"){
+create_fp_tables=function(common,cell_lines){
   # Devide picks into different groups
   cell1=paste0(str_sub(cell_lines[1],1,2),str_sub(cell_lines[1],start=6))
   cell2=paste0(str_sub(cell_lines[2],1,2),str_sub(cell_lines[2],start=6))
@@ -387,7 +403,11 @@ create_fp_tables_and_save_graphs=function(common,cell_lines, experiment, prefix,
                       paste0(cell1,"T_",cell2,"F"),
                       paste0(cell1,"F_",cell2,"T"))
   
-  png(paste0("plots/mean_values/",experiment, "_MAnorm_2rep_", cell1,"_",cell2,"_diff_test_",prefix,".png"), res = 300, width = 3500, height = 2200)
+  return(tf_table)
+}
+
+save_fp_graphs_with_mean_values=function(tf_table,cell_lines, experiment, prefix, padj_or_pval="isPadj"){
+  png(paste0("plots/mean_values/",experiment, "_", cell1,"_",cell2,"_diff_test_",prefix,".png"), res = 300, width = 3500, height = 2200)
   plot.new()
   p1=ggplot(tf_table[[1]], aes(x=get(cell1.mean), y=get(cell2.mean)))+geom_point(aes(col=get(padj_or_pval)))+ggtitle("Common peaks in 2 cell lines")+labs(x=cell1.mean, y=cell2.mean)
   p2=ggplot(tf_table[[2]], aes(x=get(cell1.mean), y=get(cell2.mean)))+geom_point(aes(col=get(padj_or_pval)))+ggtitle("Uncommon peaks in 2 cell lines")+labs(x=cell1.mean, y=cell2.mean)
@@ -397,8 +417,6 @@ create_fp_tables_and_save_graphs=function(common,cell_lines, experiment, prefix,
   p6=ggplot(common, aes(x=get(cell1.mean), y=get(cell2.mean)))+geom_point(aes(col=get(padj_or_pval)))+ggtitle("All peaks")+geom_smooth(method="lm", formula=y~x)+labs(x=cell1.mean, y=cell2.mean)
   print(p6+(p1 | p2) / (p3 | p4 | p5) + plot_layout(widths=c(1, 2)))
   dev.off()
-  
-  return(tf_table)
 }
 
 add_greater_and_lower_mean_ranges_tables=function(common_manorm, mean_cutoff, cell_lines){
