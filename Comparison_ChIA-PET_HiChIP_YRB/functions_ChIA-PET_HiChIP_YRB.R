@@ -322,7 +322,8 @@ generate_manorm_plot=function(cells, norm, raw=NULL){
                    norm[[paste0(cells[2], ".occupancy")]])
       main="After normalization"
       }
-  MAplot(param[[2]], param[[1]], param[[4]], param[[3]], ylim = set_ylim, xlim=set_xlim,
+  MAplot(param[[2]], param[[1]], param[[4]], param[[3]], 
+         ylim = set_ylim, xlim=set_xlim,
          main=main, cex=1.5, cex.main=2.3, 
          line=0.2,
          cex.axis=2, cex.lab=2,
@@ -330,10 +331,10 @@ generate_manorm_plot=function(cells, norm, raw=NULL){
            x="topright",
            inset = c(0, 0),
            legend=c("common", paste0(cells[1]," specific"), paste0(cells[2]," specific"), "others"),
-           bty = "o", xpd = TRUE,
+           bty = "n", xpd = TRUE,
            y.intersp=0.8,
            x.intersp=1,
-           cex=1.5))
+           cex=2))
   abline(h = 0, lwd = 2, lty = 5)
 
 }

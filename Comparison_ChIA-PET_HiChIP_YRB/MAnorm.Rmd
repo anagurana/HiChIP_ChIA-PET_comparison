@@ -334,9 +334,9 @@ names(table_chiapet_2rep_occupancy_overlapped)=cell_lines
 [ChIA-PET 2 rep] MANorm normalization between the replicates
 ```{r}
 ### Normalize between groups
-norm_chiapet_2rep <- MAnorm2::normalize(norm_inp_chiapet_2rep, count = 4:5, occupancy = 10:11)
-norm_chiapet_2rep <- MAnorm2::normalize(norm_chiapet_2rep, count = 6:7, occupancy = 12:13)
-norm_chiapet_2rep <- MAnorm2::normalize(norm_chiapet_2rep, count = 8:9, occupancy = 14:15)
+norm_chiapet_2rep <- MAnorm2::normalize(norm_inp_chiapet_2rep, count = 4:5, occupancy = 10:11, baseline=5)
+norm_chiapet_2rep <- MAnorm2::normalize(norm_chiapet_2rep, count = 6:7, occupancy = 12:13, baseline=7)
+norm_chiapet_2rep <- MAnorm2::normalize(norm_chiapet_2rep, count = 8:9, occupancy = 14:15, baseline=9)
 
 # Add information about the index of the peaks, to identify them in the future
 norm_chiapet_2rep$index=row.names(norm_chiapet_2rep)
@@ -344,10 +344,10 @@ norm_chiapet_2rep$index=row.names(norm_chiapet_2rep)
 ### Visualize the plots before/after normalization (Generating new plots and data (log2))
 raw_chiapet_2rep = log(norm_inp_chiapet_2rep[4:9] + 0.5, base = 2)
 
-png(paste0('plots/ChIA-PET_MAnorm_2rep_normalization_mrgBins_y4_wout_reduce.png'), res = 300, width = 4200, height = 4200)
+png(paste0('plots/ChIA-PET_MAnorm_2rep_normalization_mrgBins_y4_wout_reduce_baseline.png'), res = 300, width = 4200, height = 4200)
 
 # Generating new plots and data (log2)
-set_xlim<<-c(4,14)
+set_xlim<<-c(4,20)
 set_ylim<<-c(-4, 4)
 
 par(mar=c(3,3,3,3))
@@ -356,10 +356,10 @@ plot.new()
 text(0.5,0.5,trios[[1]],cex=3,font=2)
 generate_manorm_plot(cell_lines[1:2], norm_chiapet_2rep, raw_chiapet_2rep)
 plot.new()
-text(0.5,0.5,trios[[1]],cex=3,font=2)
+text(0.5,0.5,trios[[2]],cex=3,font=2)
 generate_manorm_plot(cell_lines[3:4], norm_chiapet_2rep, raw_chiapet_2rep)
 plot.new()
-text(0.5,0.5,trios[[1]],cex=3,font=2)
+text(0.5,0.5,trios[[3]],cex=3,font=2)
 generate_manorm_plot(cell_lines[5:6], norm_chiapet_2rep , raw_chiapet_2rep)
 #After normalization
 generate_manorm_plot(cell_lines[1:2], norm_chiapet_2rep)
@@ -372,18 +372,22 @@ dev.off()
 ```{r}
 ### Construct a bioCond for each group of samples.
 conds_chiapet_2rep_raw <- list(
-  GM19238 = bioCond(norm_chiapet_2rep[4:5], norm_chiapet_2rep[10:11], name = trios[[1]]),
-  GM19239 = bioCond(norm_chiapet_2rep[6:7], norm_chiapet_2rep[12:13], name = trios[[2]]),
-  GM19240 = bioCond(norm_chiapet_2rep[8:9], norm_chiapet_2rep[14:15], name = trios[[3]]))
+  GM19238 = bioCond(norm_chiapet_2rep[4:5], norm_chiapet_2rep[10:11], name = trios[[1]], occupy.num = 1),
+  GM19239 = bioCond(norm_chiapet_2rep[6:7], norm_chiapet_2rep[12:13], name = trios[[2]], occupy.num = 1),
+  GM19240 = bioCond(norm_chiapet_2rep[8:9], norm_chiapet_2rep[14:15], name = trios[[3]], occupy.num = 1))
 
 ### Perform between-group normalization.
 autosome <- !(norm_inp_chiapet_2rep$chrom %in% c("chrX", "chrY"))
-conds_chiapet_2rep <- normBioCond(conds_chiapet_2rep_raw, common.peak.regions = autosome)
+conds_chiapet_2rep <- normBioCond(conds_chiapet_2rep_raw, common.peak.regions = autosome, baseline=2)
+
+png(paste0('plots/',experiment,'_MAnorm_2rep_normalization_info_trial.png'), res = 300, width = 6000, height = 4200)
+plot.new()
+plot(attr(conds_chiapet_2rep, "MA.cor"), symbreaks = TRUE, margins = c(23, 23), cexRow = 3, cexCol = 3, key.par = list(cex=2.5))
+dev.off()
 
 # Drawing MA plots on bioCond objects to visualize the normalization results 
-
-png(paste0('plots/ChIA-PET_MAnorm_2rep_trios_normalization_mrgBins_wout_reduce.png'), res = 300, width = 4200, height = 4200)
-set_xlim<<-c(4,14)
+png(paste0('plots/ChIA-PET_MAnorm_2rep_trios_normalization_mrgBins_wout_reduce_trial3.png'), res = 300, width = 4200, height = 4200)
+set_xlim<<-c(4,20)
 set_ylim<<-c(-2, 2)
 
 # Generating new plots and data (log2)
@@ -409,13 +413,14 @@ dev.off()
 ```{r}
 ### Fit an MVC.
 conds_chiapet_2rep <- fitMeanVarCurve(conds_chiapet_2rep, 
-                                     method = "parametric", 
-                                     occupy.only = TRUE,
-                                     init.coef = c(0.1, 10))
+                                     method = "local", 
+                                     occupy.only = FALSE,
+                                     init.coef = c(0.1, 10)
+                                     )
 
 ### Plot only occupied genomic intervals,
 # as only these intervals have been used to fit the MVC.
-plotMeanVarCurve(conds_chiapet_2rep, subset = "occupied", ylim = c(-7, 0.5))
+plotMeanVarCurve(conds_chiapet_2rep, subset = "all", ylim = c(-7, 0.5))
 
 ```
 
@@ -434,7 +439,7 @@ names(res_chiapet_rep2)=c("all_trios",
 # Visualize the results
 p_value<<- 0.05
 
-png(paste0('plots/ChIA-PET_MAnorm_2rep_trios_diff_test_mrgBins_pval_',p_value,'.png'), res = 300, width = 2200, height = 2200)
+png(paste0('plots/ChIA-PET_MAnorm_2rep_trios_diff_test_mrgBins_pval_',p_value,'_regression_all.png'), res = 300, width = 2200, height = 2200)
 par(mar=c(2.3,2.3,2.3,2.3))
 layout(matrix(c(1,2,3,4,1,5,3,4,1,6,3,4),ncol=3),heights=c(1,3,1,3,1,3))
 
@@ -472,22 +477,35 @@ common_chiapet_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_chiap
 common_chiapet_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_chiapet_manorm_2rep, mean_cutoff, trios[2:3])
 
 # Create tables and graphs that will show which mean values have cell lines and their pval                                 
-
-par="isPval"
-prefix="_2rep_mrgBins"
 pos_false_tables_chiapet_2rep=list(
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[1]],trios[1:2], experiment, paste0("all",prefix),par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[4]],trios[1:2], experiment, paste0("mean>=10",prefix), par),      
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[5]],trios[1:2], experiment, paste0("mean<10",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[2]],trios[c(1,3)], experiment, paste0("all",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[6]],trios[c(1,3)], experiment, paste0("mean>=10",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[7]],trios[c(1,3)], experiment, paste0("mean<10",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[3]],trios[2:3], experiment, paste0("all",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[8]],trios[2:3], experiment, paste0("mean>=10",prefix), par),
-  create_fp_tables_and_save_graphs(common_chiapet_manorm_2rep[[9]],trios[2:3], experiment, paste0("mean<10",prefix), par))
+  create_fp_tables(common_chiapet_manorm_2rep[[1]],trios[1:2]),
+  create_fp_tables(common_chiapet_manorm_2rep[[4]],trios[1:2]),     
+  create_fp_tables(common_chiapet_manorm_2rep[[5]],trios[1:2]),
+  create_fp_tables(common_chiapet_manorm_2rep[[2]],trios[c(1,3)]),
+  create_fp_tables(common_chiapet_manorm_2rep[[6]],trios[c(1,3)]),
+  create_fp_tables(common_chiapet_manorm_2rep[[7]],trios[c(1,3)]),
+  create_fp_tables(common_chiapet_manorm_2rep[[3]],trios[2:3]),
+  create_fp_tables(common_chiapet_manorm_2rep[[8]],trios[2:3]),
+  create_fp_tables(common_chiapet_manorm_2rep[[9]],trios[2:3]))
 
 names(pos_false_tables_chiapet_2rep)=names(common_chiapet_manorm_2rep)[c(1,4,5,2,6,7,3,8,9)]
 rm(prefix)
+
+# # Save graphs that will show which mean values have cell lines and their pval
+# par="isPval"
+# prefix="_2rep_mrgBins"
+# 
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[1:2], experiment, paste0("all",prefix),par)
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[1:2], experiment, paste0("mean>=10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[1:2], experiment, paste0("mean<10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[c(1,3)], experiment, paste0("all",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[c(1,3)], experiment, paste0("mean>=10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[c(1,3)], experiment, paste0("mean<10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[2:3], experiment, paste0("all",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[2:3], experiment, paste0("mean>=10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_chiapet_2rep,trios[2:3], experiment, paste0("mean<10",prefix), par)
+
+
 
 ```
 
@@ -526,6 +544,22 @@ for (i in 1:NROW(confusion_tables_chiapet_2rep)){
                        dnn=c(paste0("pval>",p_value), "SPP_detected")))
 }
 
+# Collect data for the ROI curve
+if (!exists("ROC_curve_chiapet_2rep")){
+  ROC_curve_chiapet_2rep=data.frame()
+  ROC_curve_chiapet_2rep[nrow(ROC_curve_chiapet_2rep)+length(confusion_tables_chiapet_2rep),]=names(confusion_tables_chiapet_2rep)
+  row.names(ROC_curve_chiapet_2rep)=names(confusion_tables_chiapet_2rep)
+}
+
+accuracy=c()
+for (pair in names(confusion_tables_chiapet_2rep)){
+  tmp=confusion_tables_chiapet_2rep[[pair]]$overall[[1]]
+  accuracy=c(accuracy, tmp)
+}
+
+ROC_curve_chiapet_2rep[,ncol(ROC_curve_chiapet_2rep) + 1]=as.data.frame(accuracy)
+colnames(ROC_curve_chiapet_2rep)[ncol(ROC_curve_chiapet_2rep)]=paste0("p_value=",toString(p_value))
+
 # Table that are lying under the confusion matrices (TP, TN, FP, FN)
 # 4 CASES
 confusion_data_chiapet_2rep=vector(mode="list", length=3)
@@ -559,6 +593,527 @@ for (pair in names(confusion_data_chiapet_2rep)){
 rm(cell1, cell2, n, pair)
 rm(peaks_excl_3_cell_line_and_sex_chr)
 ```
+
+#[ChIA-PET 2rep] Select possible constant peaks
+```{r}
+confusion_data=confusion_data_chiapet_2rep
+
+chiapet_fn_ids=list(
+  
+  ### PAIRS of cell lines ###
+  
+  # Probable constant peaks are those, in which peaks for 2 cell lines are TP, and for the third line FN
+  # For examples, if GM38_GM39 are TP (by SPP and pval) and GM38_GM40 are negative (by SPP), 
+  # but positive by pval (>(0.05)) than those peaks are considered to be constant
+  
+# Results
+  # Between 38_39 and 40 --> + 3510
+  # Between 38_40 and 39 --> + 2362
+  # Between 39_40 and 38 --> + 3805
+  
+  fn_38_39=intersect(
+    confusion_data$GM38_GM39$TP$norm.index,
+    unique(confusion_data$GM38_GM40$FN[confusion_data$GM38_GM40$FN$GM19240.occupancy==FALSE,]$norm.index,
+           confusion_data$GM39_GM40$FN[confusion_data$GM39_GM40$FN$GM19240.occupancy==FALSE,]$norm.index)),
+  fn_38_40=intersect(
+    confusion_data$GM38_GM40$TP$norm.index,
+    unique(confusion_data$GM38_GM39$FN[confusion_data$GM38_GM39$FN$GM19239.occupancy==FALSE,]$norm.index,
+           confusion_data$GM39_GM40$FN[confusion_data$GM39_GM40$FN$GM19239.occupancy==FALSE,]$norm.index)),
+  fn_39_40=intersect(
+    confusion_data$GM39_GM40$TP$norm.index,
+    unique(confusion_data$GM38_GM39$FN[confusion_data$GM38_GM39$FN$GM19238.occupancy==FALSE,]$norm.index,
+           confusion_data$GM38_GM40$FN[confusion_data$GM38_GM40$FN$GM19238.occupancy==FALSE,]$norm.index)),
+  
+  ### SINGLE CELL LINE ###
+  
+  # Peaks were 
+  
+  # Probable constant peaks are those, in which peaks for 2 cell lines are TP, and for the third line FN
+  # For examples, if GM38_GM39 are TP (by SPP and pval) and GM38_GM40 are negative (by SPP), 
+  # but positive by pval (>(0.05)) than those peaks are considered to be constant
+  
+# Results
+  # Between 38 and other cell_lines --> 8647 vs 9996 >> 6077 common
+  # Between 39 and other cell_lines --> 7773 vs 6897 >> 3548 common
+  # Between 40 and other cell_lines --> 4770 vs 3701 >> 1174 common
+  
+  fn_38=intersect(
+    confusion_data$GM38_GM39$FN[confusion_data$GM38_GM39$FN$GM19238.occupancy==TRUE,]$norm.index,
+    confusion_data$GM38_GM40$FN[confusion_data$GM38_GM40$FN$GM19238.occupancy==TRUE,]$norm.index),
+
+  fn_39=intersect(
+    confusion_data$GM38_GM39$FN[confusion_data$GM38_GM39$FN$GM19239.occupancy==TRUE,]$norm.index,
+    confusion_data$GM39_GM40$FN[confusion_data$GM39_GM40$FN$GM19239.occupancy==TRUE,]$norm.index),
+
+  fn_40=intersect(
+    confusion_data$GM38_GM40$FN[confusion_data$GM38_GM40$FN$GM19240.occupancy==TRUE,]$norm.index,
+    confusion_data$GM39_GM40$FN[confusion_data$GM39_GM40$FN$GM19240.occupancy==TRUE,]$norm.index))
+
+### Deduplicate the peaks
+# 7807 peaks are constant and were supposed to be unique for PAIRS of cell lines
+# with pval=0.03 --> 6047
+# with pval=0.06 --> 5620
+id_constant_chiapet_by_manorm_peaks_pairs=unique(unlist(chiapet_fn_ids[1:3]))
+# 4376 peaks are constant and were supposed to be unique for cell lines
+# with pval=0.03 --> 9472
+# with pval=0.06 --> 8664
+id_constant_chiapet_by_manorm_peaks_single_lines=unique(unlist(chiapet_fn_ids[4:6]))
+
+# Get peaks using their indexes
+# 12183 of possible unique peaks
+# with pval=0.03 --> 15519 
+# with pval=0.06 --> 14284 
+constant_chiapet_by_manorm_peaks=norm_chiapet[sort(c(id_constant_chiapet_by_manorm_peaks_pairs, 
+                                              id_constant_chiapet_by_manorm_peaks_single_lines)),]
+
+constant_chiapet_by_manorm_peaks.gr=sort(GRanges(constant_chiapet_by_manorm_peaks))
+
+### Overlapping pf the peaks
+# 7299 of 11550 are overlaping with ChIP-Seq constant peaks (0.6319481)
+# with pval=0.03 --> 9715 of 14524 (0.6688929)
+# with pval=0.06 --> 8947 of 13447 (0.6653529) !!
+NROW(subsetByOverlaps(IRanges::reduce(constant_chiapet_by_manorm_peaks.gr+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp)))
+NROW(IRanges::reduce(constant_chiapet_by_manorm_peaks.gr+p_exp))
+
+# 31 of 7299 are actually overlaping with SPP detected peaks, 
+# but for some reason had false occupancy (some of them are narrow)
+subsetByOverlaps(constant_chiapet_by_manorm_peaks.gr, common_peaks_for_trios_ChIAPET$constant_peaks)
+
+# That's why we want to reduce these peaks. In total we have 39031 (19333+19698) peaks, 
+# after reduction 36600 
+# with pval=0.03 --> 39967
+# with pval=0.06 --> 38732
+chiapet_constant_peaks_with_manorm=IRanges::reduce(c(constant_chiapet_by_manorm_peaks.gr, common_peaks_for_trios_ChIAPET$constant_peaks))
+
+# How many initial peaks from ChIA-PET are overlapping with ChIP-Seq constant peaks
+# 21981 of 22818 (0.9633184)
+subsetByOverlaps(IRanges::reduce(common_peaks_for_trios_ChIAPET$constant_peaks+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp))
+
+# Let's do the overlap of all true peaks with ChIP-Seq constant peaks
+# 26628 from 31307 were overlapped (before only 23037, so +3591 new peaks), ChIP-Seq has 37332 peaks. (0.8505446)
+# with pval=0.03 --> 28310 from 33453 (0.8462619)
+# with pval=0.06 --> 27786 from 32642 (0.8512346)
+NROW(subsetByOverlaps(IRanges::reduce(chiapet_constant_peaks_with_manorm+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp)))
+NROW(IRanges::reduce(chiapet_constant_peaks_with_manorm+p_exp))
+
+# Check which new peaks were being  ADDITIONALY detected by manorm
+subsetByOverlaps(chiapet_constant_peaks_with_manorm, common_peaks_for_trios_ChIAPET$constant_peaks, invert=TRUE)
+
+```
+
+################################
+
+#[HiChIP 2 rep] MANorm input
+```{r}
+# Name of the experiment is being used during the saving of the plots
+experiment="HiChIP"
+# trios names are being used to name the components in the list
+cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
+trios=c("GM19238", "GM19239", "GM19240")
+# read the input file for MANorm (generated from MANorm_utils)
+norm_inp_hichip_2rep=data.frame(read.table(paste0("data/hichip/hichip_2rep_wout_reduce_profile_bins.xls"), header = T))
+
+# See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by MANorms
+table_hichip_2rep_occupancy_raw=list(
+  summary(as.logical(norm_inp_hichip_2rep$GM19238_rep1.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19238_rep2.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19239_rep1.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19239_rep2.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19240_rep1.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19240_rep2.occupancy)))
+names(table_hichip_2rep_occupancy_raw)=cell_lines
+
+# Replace the occupancy by occupancy calculated from overlapping with bins
+occupancy_by_overlaps_hichip_2rep=list()
+for (cell_line in cell_lines){
+  occupancy_by_overlaps_hichip_2rep[[cell_line]]=as.integer(1:NROW(hichip_bins) %in% unique(queryHits(findOverlaps(hichip_bins,rep2_peaks_with_motif_HiChIP[[cell_line]]))))
+}
+
+norm_inp_hichip_2rep$GM19238_rep1.occupancy=occupancy_by_overlaps_hichip_2rep$GM19238_rep1
+norm_inp_hichip_2rep$GM19238_rep2.occupancy=occupancy_by_overlaps_hichip_2rep$GM19238_rep2
+norm_inp_hichip_2rep$GM19239_rep1.occupancy=occupancy_by_overlaps_hichip_2rep$GM19239_rep1
+norm_inp_hichip_2rep$GM19239_rep2.occupancy=occupancy_by_overlaps_hichip_2rep$GM19239_rep2
+norm_inp_hichip_2rep$GM19240_rep1.occupancy=occupancy_by_overlaps_hichip_2rep$GM19240_rep1
+norm_inp_hichip_2rep$GM19240_rep2.occupancy=occupancy_by_overlaps_hichip_2rep$GM19240_rep2
+
+# See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by overlapping
+table_hichip_2rep_occupancy_overlapped=list(
+  summary(as.logical(norm_inp_hichip_2rep$GM19238_rep1.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19238_rep2.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19239_rep1.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19239_rep2.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19240_rep1.occupancy)),
+  summary(as.logical(norm_inp_hichip_2rep$GM19240_rep2.occupancy)))
+names(table_hichip_2rep_occupancy_overlapped)=cell_lines
+
+```
+
+#[HiChIP 2 rep] MANorm normalization between the replicates
+```{r}
+### Normalize between groups
+norm_hichip_2rep <- MAnorm2::normalize(norm_inp_hichip_2rep, count = 4:5, occupancy = 10:11)
+norm_hichip_2rep <- MAnorm2::normalize(norm_hichip_2rep, count = 6:7, occupancy = 12:13)
+norm_hichip_2rep <- MAnorm2::normalize(norm_hichip_2rep, count = 8:9, occupancy = 14:15)
+# Add information about the index of the peaks, to identify them in the future
+norm_hichip_2rep$index=row.names(norm_hichip_2rep)
+
+### Visualize the plots before/after normalization (Generating new plots and data (log2))
+raw_hichip_2rep = log(norm_inp_hichip_2rep[4:9] + 0.5, base = 2)
+
+png(paste0('plots/HiChIP_MAnorm_2rep_normalization_mrgBins_wout_reduce_tr.png'), res = 300, width = 4200, height = 3900)
+
+# Generating new plots and data (log2)
+set_xlim<<-c(4,20)
+set_ylim<<-c(-4,4)
+
+par(mar=c(3,3,3,3))
+layout(matrix(c(1,2,3,4,5,6,1,7,3,8,5,9),ncol=2),heights=c(0.95,3,0.95,3,0.95,3))
+plot.new()
+text(0.5,0.5,trios[[1]],cex=3,font=2)
+generate_manorm_plot(cell_lines[1:2], norm_hichip_2rep, raw_hichip_2rep)
+plot.new()
+text(0.5,0.5,trios[[2]],cex=3,font=2)
+generate_manorm_plot(cell_lines[3:4], norm_hichip_2rep, raw_hichip_2rep)
+plot.new()
+text(0.5,0.5,trios[[3]],cex=3,font=2)
+generate_manorm_plot(cell_lines[5:6], norm_hichip_2rep , raw_hichip_2rep)
+#After normalization
+generate_manorm_plot(cell_lines[1:2], norm_hichip_2rep)
+generate_manorm_plot(cell_lines[3:4], norm_hichip_2rep)
+generate_manorm_plot(cell_lines[5:6], norm_hichip_2rep)
+dev.off()
+
+```
+
+#[HiChIP 2 rep] MANorm normalization between the cell lines
+```{r}
+experiment="HiChIP"
+
+### Construct a bioCond for each group of samples.
+conds_hichip_2rep_raw <- list(
+  bioCond(norm_hichip_2rep[4:5], norm_hichip_2rep[10:11], name = trios[[1]]),
+  bioCond(norm_hichip_2rep[6:7], norm_hichip_2rep[12:13], name = trios[[2]]),
+  bioCond(norm_hichip_2rep[8:9], norm_hichip_2rep[14:15], name = trios[[3]]))
+names(conds_hichip_2rep_raw)=trios
+
+### Perform between-group normalization.
+autosome <- !(norm_inp_hichip_2rep$chrom %in% c("chrX", "chrY"))
+conds_hichip_2rep <- normBioCond(conds_hichip_2rep_raw, common.peak.regions = autosome)
+
+png(paste0('plots/',experiment,'_MAnorm_2rep_normalization_info.png'), res = 300, width = 6000, height = 4200)
+plot.new()
+plot(attr(conds_hichip_2rep, "MA.cor"), symbreaks = TRUE, margins = c(23, 23), cexRow = 3, cexCol = 3, key.par = list(cex=2.5))
+dev.off()
+
+# Drawing MA plots on bioCond objects to visualize the normalization results 
+png(paste0('plots/HiChIP_MAnorm_2rep_trios_normalization_mrgBins_wout_reduce.png'), res = 300, width = 4200, height = 4200)
+set_xlim<<-c(4,20)
+set_ylim<<-c(-2,2)
+
+# Generating new plots and data (log2)
+par(mar=c(3,3,3,3))
+layout(matrix(c(1,2,3,4,5,6,1,7,3,8,5,9),ncol=2),heights=c(1,3,1,3,1,3))
+plot.new()
+text(0.5,0.5,paste0(trios[1]," vs. ", trios[2]),cex=3,font=2)
+generate_manorm_plot_trios(trios[1:2], conds_hichip_2rep_raw, "before")
+plot.new()
+text(0.5,0.5,paste0(trios[1]," vs. ", trios[3]),cex=3,font=2)
+generate_manorm_plot_trios(trios[c(1,3)], conds_hichip_2rep_raw, "before")
+plot.new()
+text(0.5,0.5,paste0(trios[2]," vs. ", trios[3]),cex=3,font=2)
+generate_manorm_plot_trios(trios[2:3], conds_hichip_2rep_raw, "before")
+#After normalization
+generate_manorm_plot_trios(trios[1:2], conds_hichip_2rep, "after")
+generate_manorm_plot_trios(trios[c(1,3)], conds_hichip_2rep, "after")
+generate_manorm_plot_trios(trios[2:3], conds_hichip_2rep, "after")
+dev.off()
+```
+
+#[HiChIP 2 rep] Modeling of Mean-Variance Trend
+```{r}
+### Fit an MVC.
+conds_hichip_2rep <- fitMeanVarCurve(conds_hichip_2rep, 
+                                     method = "local", 
+                                     occupy.only = FALSE,
+                                     init.coef = c(0.1, 10))
+### Plot only occupied genomic intervals,
+# as only these intervals have been used to fit the MVC.
+plotMeanVarCurve(conds_hichip_2rep, subset = "all", ylim = c(-7, 0.5))
+```
+
+#[HiChIP 2rep] Differential Tests
+```{r}
+### Perform differential tests.
+res_hichip_rep2=list(aovBioCond(conds_hichip_2rep),
+                     diffTest(conds_hichip_2rep[[1]], conds_hichip_2rep[[2]]),
+                     diffTest(conds_hichip_2rep[[1]], conds_hichip_2rep[[3]]),
+                     diffTest(conds_hichip_2rep[[2]], conds_hichip_2rep[[3]]))
+names(res_hichip_rep2)=c("all_trios", 
+                         paste0(trios[1],"_",trios[2]),
+                         paste0(trios[1],"_",trios[3]), 
+                         paste0(trios[2],"_",trios[3]))
+
+# Visualize the results
+p_value<<- 0.05
+
+png(paste0('plots/HiChIP_MAnorm_2rep_trios_diff_test_mrgBins_pval_',p_value,'_regression_all.png'), res = 300, width = 2200, height = 2200)
+par(mar=c(2.3,2.3,2.3,2.3))
+layout(matrix(c(1,2,3,4,1,5,3,4,1,6,3,4),ncol=3),heights=c(1,3,1,3,1,3))
+
+plot.new()
+text(0.5,0.5,"Within paris of trios ",cex=3,font=2)
+MAplot(res_hichip_rep2$GM19238_GM19239, pval = p_value, ylim = c(-2, 2), main=paste0(trios[1]," vs. ", trios[2]), line=0.2)
+abline(h = 0, lwd = 2, lty = 5, col = "green3")
+plot.new()
+text(0.5,0.5,"Within all trios ",cex=3,font=2)
+plot(res_hichip_rep2$all_trios, pval = p_value,line=0.2)
+MAplot(res_hichip_rep2$GM19238_GM19240, pval = p_value,ylim = c(-2, 2), main=paste0(trios[1]," vs. ", trios[3]), line=0.2)
+abline(h = 0, lwd = 2, lty = 5, col = "green3")
+MAplot(res_hichip_rep2$GM19239_GM19240, pval = p_value,ylim = c(-2, 2), main=paste0(trios[2]," vs. ", trios[3]),line=0.2)
+abline(h = 0, lwd = 2, lty = 5, col = "green3")
+dev.off()
+```
+
+#[HiChIP 2 rep] Analysis of the results: Show which peaks were filtered by pval based on their mean_value
+```{r}
+experiment="HiChIP"
+
+# Create tables that will include all important information for the analysis
+common_hichip_manorm_2rep=list(
+  create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[1:2]),              
+  create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[c(1,3)]),               
+  create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[2:3]))
+names(common_hichip_manorm_2rep)=create_short_name_for_col(trios)
+
+# Create additional tables with lower and higher values of mean values (select the squares)
+mean_cutoff=10
+
+common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_cutoff, trios[1:2])
+common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_cutoff, trios[c(1,3)])
+common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_cutoff, trios[2:3])
+
+# Create false pos tables
+par="isPval"
+prefix="_2rep_mrgRep"
+
+pos_false_tables_hichip_2rep=list(
+  create_fp_tables(common_hichip_manorm_2rep[[1]],trios[1:2]),
+  create_fp_tables(common_hichip_manorm_2rep[[4]],trios[1:2]),     
+  create_fp_tables(common_hichip_manorm_2rep[[5]],trios[1:2]),
+  create_fp_tables(common_hichip_manorm_2rep[[2]],trios[c(1,3)]),
+  create_fp_tables(common_hichip_manorm_2rep[[6]],trios[c(1,3)]),
+  create_fp_tables(common_hichip_manorm_2rep[[7]],trios[c(1,3)]),
+  create_fp_tables(common_hichip_manorm_2rep[[3]],trios[2:3]),
+  create_fp_tables(common_hichip_manorm_2rep[[8]],trios[2:3]),
+  create_fp_tables(common_hichip_manorm_2rep[[9]],trios[2:3]))
+
+names(pos_false_tables_hichip_2rep)=names(common_hichip_manorm_2rep)[c(1,4,5,2,6,7,3,8,9)]
+rm(prefix)
+
+# # Save graphs that will show which mean values have cell lines and their pval
+# par="isPval"
+# prefix="_2rep_mrgBins"
+# 
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[1:2], experiment, paste0("all",prefix),par)
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[1:2], experiment, paste0("mean>=10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[1:2], experiment, paste0("mean<10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[c(1,3)], experiment, paste0("all",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[c(1,3)], experiment, paste0("mean>=10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[c(1,3)], experiment, paste0("mean<10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[2:3], experiment, paste0("all",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[2:3], experiment, paste0("mean>=10",prefix), par)
+# save_fp_graphs_with_mean_values(pos_false_tables_hichip_2rep,trios[2:3], experiment, paste0("mean<10",prefix), par)
+```
+
+#[HiChIP 2 rep] Confusion matrices
+```{r}
+# List that contains filtered peaks (wout sex chromosomes and peaks that are coming from 3 cell line) 
+# They are being used to create confusion matrices
+peaks_excl_3_cell_line_and_sex_chr=vector(mode = "list", length = NROW(names(pos_false_tables_hichip_2rep)))
+names(peaks_excl_3_cell_line_and_sex_chr)=names(pos_false_tables_hichip_2rep)
+
+n=cell1=1
+cell2=2
+
+for (pair in names(peaks_excl_3_cell_line_and_sex_chr)){
+  tmp1=anti_join(common_hichip_manorm_2rep[[pair]], 
+                 common_hichip_manorm_2rep[[pair]][common_hichip_manorm_2rep[[pair]]$chrom=="chrX" |
+                                               common_hichip_manorm_2rep[[pair]]$chrom=="chrY",])
+  tmp1=anti_join(tmp1, tmp1[tmp1[[paste0(trios[cell1],".occupancy")]]==0 & 
+                         tmp1[[paste0(trios[cell2],".occupancy")]]==0,])
+  n=n+1
+  if (n==4){cell2=cell2+1}
+  if (n==7){cell1=cell1+1}
+  
+  peaks_excl_3_cell_line_and_sex_chr[[pair]]=tmp1
+  rm(tmp1)
+}
+rm(cell1, cell2, n, pair)
+
+# Create confusion tables for every pairs of replicates and greater and lower ranges                  
+confusion_tables_hichip_2rep=vector(mode="list", length=NROW(peaks_excl_3_cell_line_and_sex_chr))
+names(confusion_tables_hichip_2rep)=names(peaks_excl_3_cell_line_and_sex_chr)
+for (i in 1:NROW(confusion_tables_hichip_2rep)){
+  confusion_tables_hichip_2rep[i]=list(caret::confusionMatrix(factor(peaks_excl_3_cell_line_and_sex_chr[[names(confusion_tables_hichip_2rep)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
+                       factor(peaks_excl_3_cell_line_and_sex_chr[[names(confusion_tables_hichip_2rep)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
+                       dnn=c(paste0("pval>",p_value), "SPP_detected")))
+}
+
+# Collect data for the ROI curve
+if (!exists("ROC_curve_hichip_2rep")){
+  ROC_curve_hichip_2rep=data.frame()
+  ROC_curve_hichip_2rep[nrow(ROC_curve_hichip_2rep)+length(confusion_tables_chiapet_2rep),]=names(confusion_tables_chiapet_2rep)
+  row.names(ROC_curve_hichip_2rep)=names(confusion_tables_chiapet_2rep)
+}
+
+accuracy=c()
+for (pair in names(confusion_tables_chiapet_2rep)){
+  tmp=confusion_tables_chiapet_2rep[[pair]]$overall[[1]]
+  accuracy=c(accuracy, tmp)
+}
+
+ROC_curve_hichip_2rep[,ncol(ROC_curve_hichip_2rep) + 1]=as.data.frame(accuracy)
+colnames(ROC_curve_hichip_2rep)[ncol(ROC_curve_hichip_2rep)]=paste0("p_value=",toString(p_value))
+
+# Table that are lying under the confusion matrices (TP, TN, FP, FN)
+# 4 CASES
+confusion_data_hichip_2rep=vector(mode="list", length=3)
+names(confusion_data_hichip_2rep)=create_short_name_for_col(trios)
+
+cell1=n=1
+cell2=2
+for (pair in names(confusion_data_hichip_2rep)){
+  confusion_data_hichip_2rep[[pair]]=
+    # Both show common (TP)
+    list(
+      TP=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==TRUE &
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==1 &
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==1,],
+      # Spp shows yes, but pval shows different strength (FP)
+      FP=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==FALSE &
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==1 &
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==1,],
+      # SPP shows no, but pval shows, że siła jest taka sama (FN)
+      FN=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==TRUE &
+                                                      (peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==0 |
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==0),],
+       # SPP shows no and manorm agrees (TN)
+       TN=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==FALSE &
+                                                      (peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==0 |
+                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==0),])
+    n=n+1
+    if(n==2){cell2=cell2+1}
+    if(n==3){cell1=cell1+1}
+}
+rm(cell1, cell2, n, pair)
+rm(peaks_excl_3_cell_line_and_sex_chr)
+
+```
+
+# [HiChIP 2rep] Select possible constant peaks
+```{r}
+
+pos_false_table=pos_false_tables_hichip_2rep
+
+### Were unique for pairs of cell lines
+# Between 38_39 and 40 --> + 1017
+# Between 38_40 and 39 --> + 2377
+# Between 39_40 and 38 --> + 722
+
+hichip_fn_ids=list(
+  fn_38_39=intersect(
+  row.names(pos_false_table[[1]][[1]]),
+  unique(row.names(pos_false_table[[4]][[4]][pos_false_table[[4]][[4]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[7]][[4]][pos_false_table[[7]][[4]]$common_pval==TRUE,]))),
+  fn_38_40=intersect(
+  row.names(pos_false_table[[4]][[1]]),
+  unique(row.names(pos_false_table[[1]][[4]][pos_false_table[[1]][[4]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[7]][[5]][pos_false_table[[7]][[5]]$common_pval==TRUE,]))),
+  
+  fn_39_40=intersect(
+  row.names(pos_false_table[[7]][[1]]),
+  unique(row.names(pos_false_table[[1]][[5]][pos_false_table[[1]][[5]]$common_pval==TRUE,]),
+              row.names(pos_false_table[[4]][[5]][pos_false_table[[4]][[5]]$common_pval==TRUE,]))),
+  
+### Were unique for each cell_line
+# Between 38 and other cell_lines --> 4266 vs 2911 >> 1729 common
+# Between 39 and other cell_lines --> 1136 vs 1450 >> 375 common
+# Between 40 and other cell_lines --> 4041 vs 5912 >> 3253 common
+  
+  fn_38=intersect(
+    row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                           
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE & 
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE ,]),
+    row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                               
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==TRUE &
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE,])),
+  fn_39=intersect(
+    row.names(pos_false_table[[1]]$false_peaks[pos_false_table[[1]]$false_peaks$common_pval==TRUE &                                             
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==FALSE &
+                                               pos_false_table[[1]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE,]),
+    row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==TRUE &
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==FALSE,])),
+  fn_40=intersect(
+    row.names(pos_false_table[[4]]$false_peaks[pos_false_table[[4]]$false_peaks$common_pval==TRUE &                                              
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[1]],".occupancy")]]==FALSE & 
+                                               pos_false_table[[4]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE,]),
+    row.names(pos_false_table[[7]]$false_peaks[pos_false_table[[7]]$false_peaks$common_pval==TRUE &                                                
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[2]],".occupancy")]]==FALSE & 
+                                               pos_false_table[[7]]$false_peaks[[paste0(trios[[3]],".occupancy")]]==TRUE,])))
+
+### Duplicate the peaks
+# 1752 peaks are constant and were supposed to be unique for PAIRS of cell lines
+id_constant_hichip_by_manorm_peaks_pairs=unique(unlist(hichip_fn_ids[1:3]))
+# 1069 peaks are constant and were supposed to be unique for cell lines
+id_constant_hichip_by_manorm_peaks_single_lines=unique(unlist(hichip_fn_ids[4:6]))
+
+
+# 2821 in total
+constant_hichip_by_manorm_peaks=norm_hichip[c(id_constant_hichip_by_manorm_peaks_pairs, 
+                                              id_constant_hichip_by_manorm_peaks_single_lines),]
+
+constant_hichip_by_manorm_peaks.gr=sort(GRanges(constant_hichip_by_manorm_peaks))
+
+
+### Overlapping pf the peaks
+# 1857 of 2761 are overlaping with ChIP-Seq (0.6725824)
+NROW(subsetByOverlaps(IRanges::reduce(constant_hichip_by_manorm_peaks.gr+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp)))
+NROW(IRanges::reduce(constant_hichip_by_manorm_peaks.gr+p_exp))
+
+# 182 of 2761 are actually overlaping with SPP detected peaks, but for some reason had false occupancy
+NROW(subsetByOverlaps(constant_hichip_by_manorm_peaks.gr, common_peaks_for_trios_HiChIP$constant_peaks))
+
+# That's why we want to reduce these peaks. In total we have x peaks, after reduction 27580 (2 more peaks were detected as overlapped)
+hichip_constant_peaks_with_manorm=IRanges::reduce(c(constant_hichip_by_manorm_peaks.gr, common_peaks_for_trios_HiChIP$constant_peaks))
+
+# How many initial peaks from ChIA-PET are overlapping with ChIP-Seq constant peaks
+# 22514 of 23227 (0.969303)
+NROW(subsetByOverlaps(IRanges::reduce(common_peaks_for_trios_HiChIP$constant_peaks+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp)))
+NROW(IRanges::reduce(common_peaks_for_trios_HiChIP$constant_peaks+p_exp))
+
+# Let's do the overlap of all true peaks with ChIP-Seq constant peaks
+# 23648 from 25116 were overlapped (before only 22514, so +1134 new peaks), ChIP-Seq has 37332 peaks. (0.9415512)
+# with pval=0.03 --> 28310 from 33453 (0.8462619)
+# with pval=0.06 --> 27786 from 32642 (0.8512346)
+NROW(subsetByOverlaps(IRanges::reduce(hichip_constant_peaks_with_manorm+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp)))
+NROW(IRanges::reduce(hichip_constant_peaks_with_manorm+p_exp))
+
+# Check which new peaks were being  ADDITIONALY detected by manorm
+NROW(subsetByOverlaps(hichip_constant_peaks_with_manorm, common_peaks_for_trios_HiChIP$constant_peaks, invert=TRUE))
+
+
+
+# Let's do the overlap of all true peaks with ChIP-Seq all peaks
+# p_value=0.05 --> 0.9644848 (they are not from proper groups)
+NROW(subsetByOverlaps(IRanges::reduce(hichip_constant_peaks_with_manorm+p_exp), IRanges::reduce(unlist(common_peaks_for_trios_ChIPSeq+p_exp))))
+NROW(IRanges::reduce(hichip_constant_peaks_with_manorm+p_exp))
+
+
+
+```
+
+################################################################################################################################################################
 
 # [ChIA-PET merged] MANorm input
 ```{r}
@@ -597,7 +1152,6 @@ names(table_chiapet_occupancy_overlapped)=trios
 
 # [ChIA-PET merged] MANorm normalization between the cell lines
 ```{r}
-
 ### Visualize the plots before/after normalization (log2)
 raw_chiapet = log(norm_inp_chiapet[4:6] + 0.5, base = 2)
 
@@ -607,10 +1161,15 @@ norm_chiapet <- normalize(norm_inp_chiapet, c(4:6), c(7:9), common.peak.regions 
 # Add information about the index of the peaks, to identify them in the future
 norm_chiapet$index=row.names(norm_chiapet)
 
+png(paste0('plots/',experiment,'_MAnorm_merRep_normalization_info.png'), res = 300, width = 6000, height = 4200)
+plot.new()
+plot(attr(norm_chiapet, "MA.cor"), symbreaks = TRUE, margins = c(23, 23), cexRow = 3, cexCol = 3, key.par = list(cex=2.5))
+dev.off()
+
 png(paste0('plots/',experiment,'_MAnorm_merRep_normalization_overlaps_wout_reduce.png'), res = 300, width = 4200, height = 4200)
 
 # Generation of new plots before/after normalization (log2)
-set_xlim<<-c(6,16)
+set_xlim<<-c(6,20)
 set_ylim<<-c(-2,2)
 
 par(mar=c(3,3,3,3))
@@ -686,9 +1245,9 @@ res_chiapet=list(
 names(res_chiapet)=names(conds_chiapet_meanCurve)
 
 # Visualize the results
-p_value<<- 0.03
+p_value<<- 0.05
 
-png(paste0('plots/',experiment,'_MAnorm_merRep_trios_diff_test_pval_',p_value,'wout_reduce.png'), res = 300, width = 2200, height = 2200)
+png(paste0('plots/',experiment,'_MAnorm_merRep_trios_diff_test_pval_',p_value,'_wout_reduce.png'), res = 300, width = 2200, height = 2200)
 par(mar=c(2.3,2.3,2.3,2.3))
 layout(matrix(c(1,2,3,4,1,5,3,4,1,6,3,4),ncol=3),heights=c(1,3,1,3,1,3))
 
@@ -827,6 +1386,22 @@ for (i in 1:NROW(confusion_tables_chiapet)){
                        factor(peaks_excl_3_cell_line_and_sex_chr[[names(confusion_tables_chiapet)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
                        dnn=c(paste0("pval>",p_value), "SPP_detected")))
 }
+
+# Collect data for the ROI curve
+if (!exists("ROI_curve")){
+  ROI_curve=data.frame()
+  ROI_curve[nrow(ROI_curve)+length(confusion_tables_chiapet),]=names(confusion_tables_chiapet)
+  row.names(ROI_curve)=names(confusion_tables_chiapet)
+}
+
+accuracy=c()
+for (pair in names(confusion_tables_chiapet)){
+  tmp=confusion_tables_chiapet[[pair]]$overall[[1]]
+  accuracy=c(accuracy, tmp)
+}
+
+ROI_curve[,ncol(ROI_curve) + 1]=as.data.frame(accuracy)
+colnames(ROI_curve)[ncol(ROI_curve)]=paste0("p_value=",toString(p_value))
 
 # Table that are lying under the confusion matrices (TP, TN, FP, FN)
 # 4 CASES
@@ -969,277 +1544,7 @@ subsetByOverlaps(chiapet_constant_peaks_with_manorm, common_peaks_for_trios_ChIA
 
 ```
 
-#[HiChIP 2 rep] MANorm input
-```{r}
-# Name of the experiment is being used during the saving of the plots
-experiment="HiChIP"
-# trios names are being used to name the components in the list
-cell_lines=c("GM19238_rep1", "GM19238_rep2", "GM19239_rep1", "GM19239_rep2","GM19240_rep1","GM19240_rep2")
-trios=c("GM19238", "GM19239", "GM19240")
-# read the input file for MANorm (generated from MANorm_utils)
-norm_inp_hichip_2rep=data.frame(read.table(paste0("data/hichip/hichip_2rep_wout_reduce_profile_bins.xls"), header = T))
-
-# See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by MANorms
-table_hichip_2rep_occupancy_raw=list(
-  summary(as.logical(norm_inp_hichip_2rep$GM19238_rep1.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19238_rep2.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19239_rep1.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19239_rep2.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19240_rep1.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19240_rep2.occupancy)))
-names(table_hichip_2rep_occupancy_raw)=cell_lines
-
-# Replace the occupancy by occupancy calculated from overlapping with bins
-occupancy_by_overlaps_hichip_2rep=list()
-for (cell_line in cell_lines){
-  occupancy_by_overlaps_hichip_2rep[[cell_line]]=as.integer(1:NROW(hichip_bins) %in% unique(queryHits(findOverlaps(hichip_bins,rep2_peaks_with_motif_HiChIP[[cell_line]]))))
-}
-
-norm_inp_hichip_2rep$GM19238_rep1.occupancy=occupancy_by_overlaps_hichip_2rep$GM19238_rep1
-norm_inp_hichip_2rep$GM19238_rep2.occupancy=occupancy_by_overlaps_hichip_2rep$GM19238_rep2
-norm_inp_hichip_2rep$GM19239_rep1.occupancy=occupancy_by_overlaps_hichip_2rep$GM19239_rep1
-norm_inp_hichip_2rep$GM19239_rep2.occupancy=occupancy_by_overlaps_hichip_2rep$GM19239_rep2
-norm_inp_hichip_2rep$GM19240_rep1.occupancy=occupancy_by_overlaps_hichip_2rep$GM19240_rep1
-norm_inp_hichip_2rep$GM19240_rep2.occupancy=occupancy_by_overlaps_hichip_2rep$GM19240_rep2
-
-# See how many TRUE/FALSE peaks are present for each cell line for the occupancy calculated by overlapping
-table_hichip_2rep_occupancy_overlapped=list(
-  summary(as.logical(norm_inp_hichip_2rep$GM19238_rep1.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19238_rep2.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19239_rep1.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19239_rep2.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19240_rep1.occupancy)),
-  summary(as.logical(norm_inp_hichip_2rep$GM19240_rep2.occupancy)))
-names(table_hichip_2rep_occupancy_overlapped)=cell_lines
-
-```
-
-#[HiChIP 2 rep] MANorm normalization between the replicates
-```{r}
-### Normalize between groups
-norm_hichip_2rep <- MAnorm2::normalize(norm_inp_hichip_2rep, count = 4:5, occupancy = 10:11)
-norm_hichip_2rep <- MAnorm2::normalize(norm_hichip_2rep, count = 6:7, occupancy = 12:13)
-norm_hichip_2rep <- MAnorm2::normalize(norm_hichip_2rep, count = 8:9, occupancy = 14:15)
-# Add information about the index of the peaks, to identify them in the future
-norm_hichip_2rep$index=row.names(norm_hichip_2rep)
-
-### Visualize the plots before/after normalization (Generating new plots and data (log2))
-raw_hichip_2rep = log(norm_inp_hichip_2rep[4:9] + 0.5, base = 2)
-
-png(paste0('plots/HiChIP_MAnorm_2rep_normalization_mrgBins_wout_reduce.png'), res = 300, width = 4200, height = 4200)
-
-# Generating new plots and data (log2)
-set_xlim<<-c(4,14)
-set_ylim<<-c(-2,2)
-
-par(mar=c(3,3,3,3))
-layout(matrix(c(1,2,3,4,5,6,1,7,3,8,5,9),ncol=2),heights=c(1,3,1,3,1,3))
-plot.new()
-text(0.5,0.5,trios[[1]],cex=3,font=2)
-generate_manorm_plot(cell_lines[1:2], norm_hichip_2rep, raw_hichip_2rep)
-plot.new()
-text(0.5,0.5,trios[[2]],cex=3,font=2)
-generate_manorm_plot(cell_lines[3:4], norm_hichip_2rep, raw_hichip_2rep)
-plot.new()
-text(0.5,0.5,trios[[3]],cex=3,font=2)
-generate_manorm_plot(cell_lines[5:6], norm_hichip_2rep , raw_hichip_2rep)
-#After normalization
-generate_manorm_plot(cell_lines[1:2], norm_hichip_2rep)
-generate_manorm_plot(cell_lines[3:4], norm_hichip_2rep)
-generate_manorm_plot(cell_lines[5:6], norm_hichip_2rep)
-dev.off()
-
-```
-
-#[HiChIP 2 rep] MANorm normalization between the cell lines
-```{r}
-
-### Construct a bioCond for each group of samples.
-conds_hichip_2rep_raw <- list(
-  bioCond(norm_hichip_2rep[4:5], norm_hichip_2rep[10:11], name = trios[[1]]),
-  bioCond(norm_hichip_2rep[6:7], norm_hichip_2rep[12:13], name = trios[[2]]),
-  bioCond(norm_hichip_2rep[8:9], norm_hichip_2rep[14:15], name = trios[[3]]))
-names(conds_hichip_2rep_raw)=trios
-
-### Perform between-group normalization.
-autosome <- !(norm_inp_hichip_2rep$chrom %in% c("chrX", "chrY"))
-conds_hichip_2rep <- normBioCond(conds_hichip_2rep_raw, common.peak.regions = autosome)
-
-# Drawing MA plots on bioCond objects to visualize the normalization results 
-
-png(paste0('plots/HiChIP_MAnorm_2rep_trios_normalization_mrgBins_wout_reduce.png'), res = 300, width = 4200, height = 4200)
-set_xlim<<-c(4,14)
-set_ylim<<-c(-2,2)
-
-# Generating new plots and data (log2)
-par(mar=c(3,3,3,3))
-layout(matrix(c(1,2,3,4,5,6,1,7,3,8,5,9),ncol=2),heights=c(1,3,1,3,1,3))
-plot.new()
-text(0.5,0.5,paste0(trios[1]," vs. ", trios[2]),cex=3,font=2)
-generate_manorm_plot_trios(trios[1:2], conds_hichip_2rep_raw, "before")
-plot.new()
-text(0.5,0.5,paste0(trios[1]," vs. ", trios[3]),cex=3,font=2)
-generate_manorm_plot_trios(trios[c(1,3)], conds_hichip_2rep_raw, "before")
-plot.new()
-text(0.5,0.5,paste0(trios[2]," vs. ", trios[3]),cex=3,font=2)
-generate_manorm_plot_trios(trios[2:3], conds_hichip_2rep_raw, "before")
-#After normalization
-generate_manorm_plot_trios(trios[1:2], conds_hichip_2rep, "after")
-generate_manorm_plot_trios(trios[c(1,3)], conds_hichip_2rep, "after")
-generate_manorm_plot_trios(trios[2:3], conds_hichip_2rep, "after")
-dev.off()
-```
-
-#[HiChIP 2 rep] Modeling of Mean-Variance Trend
-```{r}
-### Fit an MVC.
-conds_hichip_2rep <- fitMeanVarCurve(conds_hichip_2rep, 
-                                     method = "parametric", 
-                                     occupy.only = TRUE,
-                                     init.coef = c(0.1, 10))
-### Plot only occupied genomic intervals,
-# as only these intervals have been used to fit the MVC.
-plotMeanVarCurve(conds_hichip_2rep, subset = "occupied", ylim = c(-7, 0.5))
-```
-
-#[HiChIP 2rep] Differential Tests
-```{r}
-### Perform differential tests.
-res_hichip_rep2=list(aovBioCond(conds_hichip_2rep),
-                     diffTest(conds_hichip_2rep[[1]], conds_hichip_2rep[[2]]),
-                     diffTest(conds_hichip_2rep[[1]], conds_hichip_2rep[[3]]),
-                     diffTest(conds_hichip_2rep[[2]], conds_hichip_2rep[[3]]))
-names(res_hichip_rep2)=c("all_trios", 
-                         paste0(trios[1],"_",trios[2]),
-                         paste0(trios[1],"_",trios[3]), 
-                         paste0(trios[2],"_",trios[3]))
-
-# Visualize the results
-p_value<<- 0.05
-
-png(paste0('plots/HiChIP_MAnorm_2rep_trios_diff_test_mrgBins_pval_',p_value,'_wout_reduce.png'), res = 300, width = 2200, height = 2200)
-par(mar=c(2.3,2.3,2.3,2.3))
-layout(matrix(c(1,2,3,4,1,5,3,4,1,6,3,4),ncol=3),heights=c(1,3,1,3,1,3))
-
-plot.new()
-text(0.5,0.5,"Within paris of trios ",cex=3,font=2)
-MAplot(res_hichip_rep2$GM19238_GM19239, pval = p_value, ylim = c(-2, 2), main=paste0(trios[1]," vs. ", trios[2]), line=0.2)
-abline(h = 0, lwd = 2, lty = 5, col = "green3")
-plot.new()
-text(0.5,0.5,"Within all trios ",cex=3,font=2)
-plot(res_hichip_rep2$all_trios, pval = p_value,line=0.2)
-MAplot(res_hichip_rep2$GM19238_GM19240, pval = p_value,ylim = c(-2, 2), main=paste0(trios[1]," vs. ", trios[3]), line=0.2)
-abline(h = 0, lwd = 2, lty = 5, col = "green3")
-MAplot(res_hichip_rep2$GM19239_GM19240, pval = p_value,ylim = c(-2, 2), main=paste0(trios[2]," vs. ", trios[3]),line=0.2)
-abline(h = 0, lwd = 2, lty = 5, col = "green3")
-dev.off()
-```
-
-#[HiChIP 2 rep] Analysis of the results: Show which peaks were filtered by pval based on their mean_value
-```{r}
-experiment="HiChIP"
-
-# Create tables that will include all important information for the analysis
-common_hichip_manorm_2rep=list(
-  create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[1:2]),              
-  create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[c(1,3)]),               
-  create_table_common_peaks_with_info(norm_hichip_2rep, res_hichip_rep2, conds_hichip_2rep, trios[2:3]))
-names(common_hichip_manorm_2rep)=create_short_name_for_col(trios)
-
-# Create additional tables with lower and higher values of mean values (select the squares)
-mean_cutoff=10
-
-common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_cutoff, trios[1:2])
-common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_cutoff, trios[c(1,3)])
-common_hichip_manorm_2rep=add_greater_and_lower_mean_ranges_tables(common_hichip_manorm_2rep, mean_cutoff, trios[2:3])
-
-# Create false pos tables
-par="isPval"
-prefix="_2rep_mrgRep"
-
-pos_false_tables_hichip_2rep=list(
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[1]],trios[1:2], experiment, paste0("all",prefix),par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[4]],trios[1:2], experiment, paste0("mean>=10",prefix), par),        
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[5]],trios[1:2], experiment, paste0("mean<10",prefix), par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[2]],trios[c(1,3)], experiment, paste0("all",prefix), par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[6]],trios[c(1,3)], experiment,  paste0("mean>=10",prefix), par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[7]],trios[c(1,3)], experiment, paste0("mean<10",prefix), par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[3]],trios[2:3], experiment,  paste0("all",prefix), par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[8]],trios[2:3], experiment, paste0("mean>=10",prefix), par),
-  create_fp_tables_and_save_graphs(common_hichip_manorm_2rep[[9]],trios[2:3], experiment, paste0("mean<10",prefix), par))
-
-names(pos_false_tables_hichip_2rep)=names(common_hichip_manorm_2rep)[c(1,4,5,2,6,7,3,8,9)]
-rm(prefix)
-```
-
-#[HiChIP 2 rep] Confusion matrices
-```{r}
-# List that contains filtered peaks (wout sex chromosomes and peaks that are coming from 3 cell line) 
-# They are being used to create confusion matrices
-peaks_excl_3_cell_line_and_sex_chr=vector(mode = "list", length = NROW(names(pos_false_tables_hichip_2rep)))
-names(peaks_excl_3_cell_line_and_sex_chr)=names(pos_false_tables_hichip_2rep)
-
-n=cell1=1
-cell2=2
-
-for (pair in names(peaks_excl_3_cell_line_and_sex_chr)){
-  tmp1=anti_join(common_hichip_manorm_2rep[[pair]], 
-                 common_hichip_manorm_2rep[[pair]][common_hichip_manorm_2rep[[pair]]$chrom=="chrX" |
-                                               common_hichip_manorm_2rep[[pair]]$chrom=="chrY",])
-  tmp1=anti_join(tmp1, tmp1[tmp1[[paste0(trios[cell1],".occupancy")]]==0 & 
-                         tmp1[[paste0(trios[cell2],".occupancy")]]==0,])
-  n=n+1
-  if (n==4){cell2=cell2+1}
-  if (n==7){cell1=cell1+1}
-  
-  peaks_excl_3_cell_line_and_sex_chr[[pair]]=tmp1
-  rm(tmp1)
-}
-rm(cell1, cell2, n, pair)
-
-# Create confusion tables for every pairs of replicates and greater and lower ranges                  
-confusion_tables_hichip_2rep=vector(mode="list", length=NROW(peaks_excl_3_cell_line_and_sex_chr))
-names(confusion_tables_hichip_2rep)=names(peaks_excl_3_cell_line_and_sex_chr)
-for (i in 1:NROW(confusion_tables_hichip_2rep)){
-  confusion_tables_hichip_2rep[i]=list(caret::confusionMatrix(factor(peaks_excl_3_cell_line_and_sex_chr[[names(confusion_tables_hichip_2rep)[i]]]$common_pval, levels=c(TRUE, FALSE)), 
-                       factor(peaks_excl_3_cell_line_and_sex_chr[[names(confusion_tables_hichip_2rep)[i]]]$predicted_rev, levels=c(TRUE, FALSE)),
-                       dnn=c(paste0("pval>",p_value), "SPP_detected")))
-}
-
-# Table that are lying under the confusion matrices (TP, TN, FP, FN)
-# 4 CASES
-confusion_data_hichip_2rep=vector(mode="list", length=3)
-names(confusion_data_hichip_2rep)=create_short_name_for_col(trios)
-
-cell1=n=1
-cell2=2
-for (pair in names(confusion_data_hichip_2rep)){
-  confusion_data_hichip_2rep[[pair]]=
-    # Both show common (TP)
-    list(
-      TP=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==TRUE &
-                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==1 &
-                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==1,],
-      # Spp shows yes, but pval shows different strength (FP)
-      FP=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==FALSE &
-                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==1 &
-                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==1,],
-      # SPP shows no, but pval shows, że siła jest taka sama (FN)
-      FN=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==TRUE &
-                                                      (peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==0 |
-                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==0),],
-       # SPP shows no and manorm agrees (TN)
-       TN=peaks_excl_3_cell_line_and_sex_chr[[pair]][peaks_excl_3_cell_line_and_sex_chr[[pair]]$common_pval==FALSE &
-                                                      (peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell1], ".occupancy")]]==0 |
-                                                      peaks_excl_3_cell_line_and_sex_chr[[pair]][[paste0(trios[cell2], ".occupancy")]]==0),])
-    n=n+1
-    if(n==2){cell2=cell2+1}
-    if(n==3){cell1=cell1+1}
-}
-rm(cell1, cell2, n, pair)
-rm(peaks_excl_3_cell_line_and_sex_chr)
-
-```
+################################
 
 #[HiChIP merged] MANorm input 
 ```{r}
@@ -1286,6 +1591,12 @@ autosome <- !(norm_inp_hichip$chrom %in% c("chrX", "chrY"))
 norm_hichip <- normalize(norm_inp_hichip, c(4:6), c(7:9), common.peak.regions = autosome)
 # Add information about the index of the peaks, to identify them in the future
 norm_hichip$index=row.names(norm_hichip)
+
+png(paste0('plots/',experiment,'_MAnorm_merRep_normalization_info.png'), res = 300, width = 6000, height = 4200)
+plot.new()
+plot(attr(norm_hichip, "MA.cor"), symbreaks = TRUE, margins = c(23, 23), cexRow = 3, cexCol = 3, key.par = list(cex=2.5))
+dev.off()
+
 
 png(paste0('plots/HiChIP_MAnorm_merRep_normalization_overlaps_wout_reduce.png'), res = 300, width = 4200, height = 4200)
 
@@ -1494,6 +1805,22 @@ for (i in 1:NROW(confusion_tables_hichip)){
                        dnn=c(paste0("pval>",p_value), "SPP_detected")))
 }
 
+# Collect data for the ROI curve
+if (!exists("ROI_curve_hichip")){
+  ROI_curve_hichip=data.frame()
+  ROI_curve_hichip[nrow(ROI_curve_hichip)+length(confusion_tables_chiapet),]=names(confusion_tables_chiapet)
+  row.names(ROI_curve_hichip)=names(confusion_tables_chiapet)
+}
+
+accuracy=c()
+for (pair in names(confusion_tables_chiapet)){
+  tmp=confusion_tables_chiapet[[pair]]$overall[[1]]
+  accuracy=c(accuracy, tmp)
+}
+
+ROI_curve_hichip[,ncol(ROI_curve_hichip) + 1]=as.data.frame(accuracy)
+colnames(ROI_curve_hichip)[ncol(ROI_curve_hichip)]=paste0("p_value=",toString(p_value))
+
 # Table that are lying under the confusion matrices (TP, TN, FP, FN)
 # 4 CASES
 confusion_data_hichip=vector(mode="list", length=3)
@@ -1609,6 +1936,7 @@ subsetByOverlaps(hichip_constant_peaks_with_manorm, true_common_peaks_ChIPSeq$co
 
 ```
 
+################################################################################################################################################################
 
 Rest of the script
 ```{r}
