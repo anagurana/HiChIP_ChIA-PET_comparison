@@ -1,7 +1,13 @@
 ---
-title: "manorm"
-output: html_document
+title: "manorm_normalization"
 ---
+###
+
+In the presented work only merged replicates were finally shown.
+Single replicates, that are mainly needed for the proper functioning of the MAnorm,
+result in a high dissimilarity between the Hi-ChIP and ChIA-PET technologies.
+It happened because of the different quality of the libraries.
+
 ###
 # Generation of BED files (peaks and bins)
 ```{r}
@@ -58,13 +64,6 @@ for (cell_line in cell_lines){
               sep="\t",row.names=FALSE, quote = FALSE)
 }
 
-# #Generation of bins file
-# hichip_bins_2rep=IRanges::reduce(unlist(rep2_peaks_all_with_motif_HiChIP, recursive = TRUE, use.names = TRUE))
-# write.table(unname(data.frame(seqnames(hichip_bins_2rep),
-#                               start(hichip_bins_2rep),
-#                               end(hichip_bins_2rep))),
-#             paste0(abs_path, "/hichip/bins_HiChIP_2rep.bed"),
-#             sep="\t",row.names=FALSE, quote = FALSE)
 
 #Generation of bins file
 hichip_bins=IRanges::reduce(unlist(peaks_with_motif_HiChIP, recursive = TRUE, use.names = TRUE))
@@ -85,14 +84,6 @@ for (cell_line in cell_lines){
               paste0("data/chiapet/peaks_ChIAPET_", cell_line, ".bed"),
               sep="\t",row.names=FALSE, quote = FALSE)
 }
-
-#Generation of bins file
-# chiapet_bins_2rep=IRanges::reduce(unlist(rep2_peaks_with_motif_ChIAPET, recursive = TRUE, use.names = TRUE))
-# write.table(unname(data.frame(seqnames(chiapet_bins_2rep),
-#                               start(chiapet_bins_2rep),
-#                               end(chiapet_bins_2rep))),
-#             paste0(abs_path, "/chiapet/bins_ChIAPET_2rep.bed"),
-#             sep="\t",row.names=FALSE, quote = FALSE)
 
 #Generation of bins file
 chiapet_bins=IRanges::reduce(unlist(peaks_with_motif_ChIAPET, recursive = TRUE, use.names = TRUE))
@@ -281,8 +272,6 @@ conds_plot <- fitMeanVarCurve(conds[c(1,2, 3,  7)], method = "parametric", occup
 res <- aovBioCond(conds_plot)
 plot(res,  pval = 0.01)
 plot(res,  padj = 1e-6, main="GM19238 vs GM19239 vs GM19240")
-
-
 
 ```
 
@@ -1128,7 +1117,7 @@ NROW(IRanges::reduce(hichip_constant_peaks_with_manorm+p_exp))
 
 ```
 
-################################################################################################################################################################
+###################################################################################################################################################
 
 # [ChIA-PET merged] MANorm input
 ```{r}
@@ -1379,7 +1368,7 @@ res_chiapet=list(
 names(res_chiapet)=names(conds_chiapet_meanCurve)
 
 # Visualize the results
-p_value<<- 0.0001
+p_value<<- 0.05
 
 png(paste0('plots/',experiment,'_MAnorm_merRep_trios_diff_test_pval_',p_value,'_parametric_all.png'), res = 300, width = 2200, height = 2200)
 par(mar=c(2.3,2.3,2.3,2.3))
@@ -1412,7 +1401,7 @@ res_hichip=list(
 names(res_hichip)=names(conds_hichip_meanCurve)
 
 # Visualize the results
-p_value<<- 0.2
+p_value<<- 0.05
 
 png(paste0('plots/',experiment,'_MAnorm_merRep_trios_diff_test_pval_',p_value,'_parametric_all.png'), res = 300, width = 2200, height = 2200)
 par(mar=c(2.3,2.3,2.3,2.3))
@@ -1860,7 +1849,7 @@ NROW(IRanges::reduce(constant_chiapet_by_manorm_peaks.gr+p_exp))
 
 # 0 of 14705 are actually overlaping with SPP detected peaks, 
 # but for some reason had false occupancy (some of them are narrow)
-subsetByOverlaps(constant_chiapet_by_manorm_peaks.gr, common_peaks_for_trios_ChIAPET$constant_peaks)
+subsetByOverlaps(constant_chiapet_by_manorm_peaks.gr, common_peaks_for_trios_ChIAPET$constant_peaks) #(chyba bez motywu tez tu sa)
 
 # That's why we want to reduce these peaks. In total we have 39031 (19333+19698) peaks, 
 # after reduction 39153 
@@ -1963,13 +1952,15 @@ hichip_constant_peaks_with_manorm=IRanges::reduce(c(constant_hichip_by_manorm_pe
 
 # How many initial peaks from HiChIP are overlapping with ChIP-Seq constant peaks
 # 21981 of 22818 (0.9633184)
-subsetByOverlaps(IRanges::reduce(common_peaks_for_trios_HiChIP$constant_peaks+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp))
+subsetByOverlaps(IRanges::reduce(common_peaks_for_trios_HiChIP$constant_peaks+p_exp),
+                 IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp))
 
 # Let's do the overlap of all true peaks with ChIP-Seq constant peaks
 # 27960 from 32901 were overlapped (before only 23037, so +6994 new peaks), ChIP-Seq has 37332 peaks. (0.8498222)
 # with pval=0.03 --> 28310 from 33453 (0.8462619)
 # with pval=0.06 --> 27786 from 32642 (0.8512346)
-NROW(subsetByOverlaps(IRanges::reduce(hichip_constant_peaks_with_manorm+p_exp), IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp)))
+NROW(subsetByOverlaps(IRanges::reduce(hichip_constant_peaks_with_manorm+p_exp),
+                      IRanges::reduce(common_peaks_for_trios_ChIPSeq$constant_peaks+p_exp)))
 NROW(IRanges::reduce(hichip_constant_peaks_with_manorm+p_exp))
 
 # Check which new peaks were being  ADDITIONALY detected by manorm
@@ -1977,116 +1968,3 @@ subsetByOverlaps(hichip_constant_peaks_with_manorm, common_peaks_for_trios_HiChI
 
 
 ```
-
-################################################################################################################################################################
-
-Rest of the script
-```{r}
-# Check which  false peaks have big pval 
-hichip_gm38T_gm40F=common_hichip.gm38_g40[common_hichip.gm38_g40$GM19238.occupancy==FALSE & 
-                       common_hichip.gm38_g40$GM19240.occupancy==TRUE & 
-                         common_hichip.gm38_g40$pval<0.001,]
-
-common_chiapet.gm38_g40$isPval=ifelse(gm38_39_df$padj<0.001, TRUE, FALSE)
-ggplot(common_chiapet.gm38_g39, aes(x=GM19238.mean, y=GM19239.mean))+geom_point(aes(col=isPval))+geom_smooth(method="lm", formula=y~x)
-
-# Chech why false peaks have big pval
-constant_df=data.frame(chrom=norm_hichip_2rep$chrom,
-           start=norm_hichip_2rep$start,
-           end=norm_hichip_2rep$end,
-           res_hichip_rep2,
-           conds_hichip_2rep$GM19238$norm.signal,
-           conds_hichip_2rep$GM19239$norm.signal,
-           conds_hichip_2rep$GM19240$norm.signal,
-           conds_hichip_2rep$GM19238$occupancy,
-           conds_hichip_2rep$GM19239$occupancy,
-           conds_hichip_2rep$GM19240$occupancy)
-
-constant_hichip_false=constant_df[which(constant_df$conds_hichip_2rep.GM19238.occupancy==FALSE & 
-                       constant_df$conds_hichip_2rep.GM19239.occupancy==FALSE& 
-                         constant_df$conds_hichip_2rep.GM19240.occupancy==TRUE & 
-                         constant_df$padj>0.01),]
-constant_hichip_false[sort(constant_hichip_false$pval, index.return=T,decreasing = TRUE)$ix,][1:10,]
-
-
-
-
-
-
-# cos=norm_chiapet_eden_single_simple[which(norm_chiapet_eden_single_simple$GM19238.occupancy==1),]
-norm_inp_hichip_2rep[sort(res_hichip_rep2$pval, index.return=T)$ix,]
-norm_hichip_2rep[sort(res_hichip_rep2$pval, index.return=T)$ix,]
-
-unique_38_39_hichip=which(norm_hichip_2rep$GM19238_rep1.occupancy==1 & 
-                                             norm_hichip_2rep$GM19238_rep2.occupancy==1&
-                                             norm_hichip_2rep$GM19239_rep1.occupancy==1 &
-                                             norm_hichip_2rep$GM19239_rep2.occupancy==1)
-norm_inp_hichip_2rep[unique_38_39_hichip,][sort(res_hichip_rep2[unique_38_39_hichip,]$pval, index.return=T)$ix,]
-head(norm_inp_hichip_2rep[unique_38_39_hichip,][sort(res_hichip_rep2[unique_38_39_hichip,]$pval, index.return=T)$ix,])
-
-norm_inp_hichip_2rep[sort(res_hichip_rep2_38_39[]$pval, index.return=T)$ix,]
-norm_hichip_2rep[sort(res_hichip_rep2_38_39$pval, index.return=T)$ix,]
-
-
-
-
-```
-
-##### Identifying Hypervariable ChIP-seq Signals
-```{r}
-autosome <- !(norm_inp_hichip_2rep$chrom %in% c("chrX", "chrY"))
-hyper_norm_hichip_2rep <- normalize(norm_inp_hichip_2rep, count = 4:9, occupancy = 10:15,
-                  baseline = "pseudo-reference",
-                  common.peak.regions = autosome)
-
-# Construct a bioCond to group all the samples.
-hyper_conds_hichip_2rep <- bioCond(hyper_norm_hichip_2rep[4:9], 
-                                   hyper_norm_hichip_2rep[10:15], 
-                                   occupy.num = 1,
-                                   name = "all")
-
-# Fit an MVC by using local regression.
-# Set "nn = 1" to increase the smoothness of the resulting MVC.
-hyper_conds_hichip_2rep <- fitMeanVarCurve(list(hyper_conds_hichip_2rep), method = "local",
-                        occupy.only = TRUE, args.lp = list(nn = 1))[[1]]
-summary(hyper_conds_hichip_2rep)
-
-# Apply the parameter estimation framework of HyperChIP.(dramatic increase in the estimated number of prior degrees of freedom)
-hyper_conds_hichip_2rep <- estParamHyperChIP(hyper_conds_hichip_2rep)
-summary(hyper_conds_hichip_2rep)
-
-# Perform statistical tests.
-hyper_res_hichip_rep2 <- varTestBioCond(hyper_conds_hichip_2rep)
-head(hyper_res_hichip_rep2)
-
-# Visualize the overall test results.
-hist(hyper_res_hichip_rep2$pval, breaks = 100, col = "red")
-plot(hyper_res_hichip_rep2, padj = 0.01)
-
-# one-sided p-values for identifying hypervariable ChIP-seq signals
-df <- attr(hyper_res_hichip_rep2, "df")
-one.sided.pval <- pf(hyper_res_hichip_rep2$fold.change, df[1], df[2], lower.tail = FALSE)
-
-n <- rowSums(hyper_norm_hichip_2rep[10:15])
-x <- list(All = -log10(one.sided.pval[n == 5]),
-          Partially = -log10(one.sided.pval[n > 0 & n < 5]))
-wilcox.test(x$All, x$Partially, alternative = "less")
-
-boxplot(x, ylab = "-Log10(p-value)")
-boxplot(x, ylab = "-Log10(p-value)", outline = FALSE)
-
-# Measure the distance between each pair of samples.
-d <- distBioCond(hyper_conds_hichip_2rep, method = "prior")
-
-# Perform hierarchical clustering.
-plot(hclust(d, method = "average"), hang = -1)
-
-# Select hypervariable genomic intervals.
-f <- hyper_res_hichip_rep2$fold.change > 1 & hyper_res_hichip_rep2$padj < 0.01
-d2 <- distBioCond(hyper_conds_hichip_2rep, subset = f, method = "prior")
-plot(hclust(d2, method = "average"), hang = -1)
-```
-
-
-
-
