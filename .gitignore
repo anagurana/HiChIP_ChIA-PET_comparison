@@ -4,11 +4,15 @@ chiapet/
 chipseq/
 CTCF_hg38.txt
 manorm_ChIA-PET/data/
+Comparison_ChIA-PET_HiChIP_YRB/data/
+Comparison_ChIA-PET_HiChIP_YRB/plots
+Comparison_ChIA-PET_HiChIP_YRB/Rdata_with_coverage_ctcf/
 
 # Reference scripts
 Michal_scripts/
 
 # Others
+.RDataTmp
 .Rsubread_UserProvidedAnnotation*
 .Rhistory
 #.DS_Store*
@@ -21,3 +25,4 @@ __pycache__
 comparison.RData
 .RData
 .Rproj.user
+Comparison_ChIA-PET_HiChIP_YRB.Rproj
